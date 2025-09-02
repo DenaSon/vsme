@@ -1,5 +1,4 @@
-<!-- Sticky navbar wrapper -->
-<div class="sticky top-0 z-50 bg-base-100 shadow-lg">
+<div class="sticky top-0 z-50 bg-base-200 shadow-lg">
     <div class="container mx-auto">
         <div class="navbar">
             <!-- START -->
@@ -24,7 +23,7 @@
 
                 <!-- Logo -->
                 <a wire:navigate href="{{ route('home') }}" class="text-center leading-tight">
-                    <div class="font-alfa text-xl text-primary tracking-wide">Byblos
+                    <div class="font-alfa font-bold text-xl text-primary tracking-wide">VSME
 
                     </div>
                 </a>
@@ -50,39 +49,41 @@
             <div class="navbar-end gap-3">
 
                 <x-theme-toggle/>
+
                 <label class="text-base-300">|</label>
 
                 @guest
 
-                    <x-button
-                        link="{{ route('login') }}"
-                        class="btn-outline btn-sm"
+                    <x-dropdown label="Language" class="btn-sm">
 
-                        label="Sign In"
-                    />
+                        <x-menu-item title="English" wire:click.stop="delete2" spinner="" />
+                        <x-menu-item title="Finnish" wire:click.stop="delete3"/>
+
+                    </x-dropdown>
 
 
                     <x-button
                         link="{{ route('register') }}"
                         class="btn-primary btn-sm"
-
-                        label="Sign Up"
+                        label="Get Started"
                     />
                 @endguest
 
 
-            @auth
+                @auth
                     <x-dropdown label="{{ Auth::user()->firstName() ?? 'User' }}">
 
                         <x-menu-item title="Dashboard" link="{{ route('panel.index') }}" icon="o-squares-2x2"/>
 
                         <x-menu-item title="My Profile" link="{{ route('panel.profile.edit') }}" icon="o-user"/>
 
-                        <x-menu-item title="Settings" link="{{ route('panel.setting.delivery') }}" icon="o-cog-6-tooth"/>
+                        <x-menu-item title="Settings" link="{{ route('panel.setting.delivery') }}"
+                                     icon="o-cog-6-tooth"/>
 
                         <x-menu-separator/>
 
-                        <x-menu-item title="Help Center" link="{{ route('panel.help.index') }}" icon="o-question-mark-circle"/>
+                        <x-menu-item title="Help Center" link="{{ route('panel.help.index') }}"
+                                     icon="o-question-mark-circle"/>
 
 
                         <x-menu-separator/>

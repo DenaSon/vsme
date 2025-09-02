@@ -1,48 +1,46 @@
-<x-card class="mt-6 bg-base-100 shadow-xl rounded-xl">
+<x-card class="mt-6 bg-base-100 border border-base-300 shadow-md hover:shadow-xl rounded-2xl transition">
     <x-slot name="title">
-        <div class="flex items-center gap-1">
-            <x-heroicon-o-chart-bar class="w-5 h-5 text-primary"/>
-            <span class="text-sm font-semibold">Activity</span>
+        <div class="flex items-center gap-2">
+            <x-heroicon-o-clipboard-document-check class="w-5 h-5 text-primary"/>
+            <span class="text-sm font-semibold">VSME Overview</span>
         </div>
     </x-slot>
-    <div class="px-1 py-1">
 
+    <div class="px-2 py-3">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
 
+            {{-- Active Questionnaires --}}
             <x-stat
-                title="Newsletters Today"
-                :value="$newslettersToday"
-                icon="o-envelope"
-                color="text-accent"
-                tooltip="Total newsletters fetched today"
-                class="mx-auto sm:mx-0"
-            />
-
-            <x-stat
-                title="Total VCs"
-                :value="$totalVCs"
-                icon="o-inbox-stack"
+                title="Active Questionnaires"
+                :value="$activeQuestionnaires"
+                icon="o-document-text"
                 color="text-primary"
-                tooltip="Total number of VC firms in the system"
+                tooltip="Number of compliance questionnaires currently active"
                 class="mx-auto sm:mx-0"
             />
 
+            {{-- Reports Generated --}}
             <x-stat
-                title="Followed VCs"
-                :value="$followedVCs"
-                icon="o-heart"
+                title="Reports Generated"
+                :value="$reportsGenerated"
+                icon="o-chart-bar"
+                color="text-accent"
+                tooltip="Total sustainability reports generated"
+                class="mx-auto sm:mx-0"
+            />
+
+            {{-- Subsidiaries Linked --}}
+            <x-stat
+                title="Subsidiaries Linked"
+                :value="$subsidiariesLinked"
+                icon="o-building-office-2"
                 color="text-secondary"
-                tooltip="Number of VCs you are following"
+                tooltip="Number of subsidiaries linked to this profile"
                 class="mx-auto sm:mx-0"
             />
 
         </div>
 
-        <div class="mt-2 text-center sm:text-right">
-            <a href="{{ route('panel.vc.directory') }}" class="text-xs text-secondary hover:underline font-semibold">
-                Explore more VC firms →
-            </a>
-        </div>
-    </div>
 
+    </div>
 </x-card>

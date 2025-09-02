@@ -2,8 +2,7 @@
 
 namespace App\Livewire\UserDashboard;
 
-use App\Models\Newsletter;
-use App\Models\Vc;
+
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -18,25 +17,24 @@ class Index extends Component
     public bool $showTrialAlert = false;
     public ?string $trialMessage = null;
 
+
+    public int $activeQuestionnaires = 0;
+    public int $reportsGenerated    = 0;
+    public int $subsidiariesLinked  = 0;
+
+
+
     public function mount(): void
     {
         $user = auth()->user();
 
-        $this->newslettersToday = Newsletter::whereDate('received_at', today())->count();
-        $this->totalVCs = Vc::count();
-        $this->followedVCs = $user?->followedVCs()->count() ?? 0;
-
-
         $subscription = $user?->subscription('default');
-
 
         if (!$subscription || is_null($subscription->trial_ends_at)) {
             $this->showTrialAlert = true;
             $this->trialMessage = "Start your free trial now!";
         }
     }
-
-
 
 
 

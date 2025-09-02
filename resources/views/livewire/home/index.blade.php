@@ -5,32 +5,29 @@
             {!! json_encode([
                 '@context' => 'https://schema.org',
                 '@type' => 'WebSite',
-                'name' => 'Byblos',
-                'url' => 'https://byblos.digital',
-                'description' => 'Follow top VC firms and get curated newsletters in your inbox with Byblos.',
+                'name' => 'VSME',
+                'url' => 'https://vsme.com',
+                'description' => 'Complete Sustainability Reports Faster with VSME',
                 'publisher' => [
                     '@type' => 'Organization',
-                    'name' => 'Byblos',
-                    'url' => 'https://byblos.digital',
+                    'name' => 'VSME',
+                    'url' => 'https://vsme.com',
                     'logo' => [
                         '@type' => 'ImageObject',
-                        'url' => 'https://byblos.digital/static/img/byblos-logo.png',
+                        'url' => '',
                     ]
                 ]
             ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
         </script>
 
-        <meta name="description"
-              content="{{ 'Byblos | Follow top VC firms and get curated newsletters in your inbox' }}">
-        <meta property="og:title" content="{{ $title ?? 'Byblos' }}">
-        <meta property="og:description"
-              content="Byblos | Follow top VC firms and get curated newsletters in your inbox">
-        <meta property="og:image" content="{{ asset('static/img/byblos-hero.webp') }}">
-        <meta property="og:url" content="{{ url()->current() }}">
-        <meta name="twitter:card" content="summary_large_image">
-
-
-
+        {{--        <meta name="description"--}}
+        {{--              content="{{ '' }}">--}}
+        {{--        <meta property="og:title" content="{{ $title ?? 'Byblos' }}">--}}
+        {{--        <meta property="og:description"--}}
+        {{--              content="">--}}
+        {{--        <meta property="og:image" content="{{ asset('static/img/byblos-hero.webp') }}">--}}
+        {{--        <meta property="og:url" content="{{ url()->current() }}">--}}
+        {{--        <meta name="twitter:card" content="summary_large_image">--}}
 
     @endpush
 
@@ -41,10 +38,10 @@
 
     <x-ui.home.timeline/>
 
-    <x-ui.home.pricing/>
+    <x-ui.home.trusted/>
 
 
-        @include('components.ui.home.scroll-up-button')
+    @include('components.ui.home.scroll-up-button')
 
 
 </div>

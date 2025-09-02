@@ -1,56 +1,95 @@
-<section class="py-10 bg-base-100" id="how-it-works">
-    <div class="max-w-6xl mx-auto px-2 text-center">
-        <h2 class="text-4xl font-bold mb-16">How {{ config('app.name') }} Works</h2>
+<section class="py-16 bg-gradient-to-b from-base-100 to-base-200" id="how-it-works">
+    <div class="max-w-6xl mx-auto px-4 text-center">
+
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-14 relative inline-block">
+            How VSME Works
+            <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1
+               bg-gradient-to-r from-primary via-secondary to-accent rounded-full"></span>
+        </h2>
+
 
         <div class="relative">
-            <!-- Horizontal line -->
-            <div class="absolute top-10 left-0 h-1 bg-base-300 z-0 hidden sm:block w-0 animate-grow-x"></div>
 
-            <!-- Timeline steps -->
+            <div class="absolute top-12 left-0 w-full h-[2px] hidden sm:block
+                  bg-gradient-to-r from-primary via-secondary to-accent opacity-30"></div>
+            <div class="absolute top-11 left-0 w-full h-[1px] hidden sm:block
+                  bg-base-300/60"></div>
+
+            <!-- Steps -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 relative z-10">
 
-                <!-- Step 1 -->
-                <div
-                    x-data="{ shown: false }"
-                    x-intersect.once="shown = true"
-                    class="flex flex-col items-center text-center relative transition-all duration-700 transform"
-                    :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'"
-                >
-                    <div class="w-16 h-16 rounded-full bg-primary text-primary-content flex items-center justify-center text-2xl shadow-lg mb-4 z-10">
-                        <x-icon name="o-user" class="w-6 h-6" />
+                <!-- Step -->
+                <div class="flex flex-col items-center text-center relative">
+                    <!-- Indicator -->
+                    <div class="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/30
+                      grid place-items-center shadow-sm mb-5">
+                        <x-icon name="o-user-plus" class="w-7 h-7 text-primary" />
                     </div>
-                    <h3 class="font-semibold text-lg mb-1">1. Sign Up</h3>
-                    <p class="text-sm text-base-content/80">Create an account in seconds.</p>
+
+                    <!-- Card -->
+                    <div class="w-full max-w-xs bg-base-100/80 border border-base-300 rounded-2xl
+                      p-5 shadow-xl">
+                        <div class="text-xs badge badge-outline border-dashed mb-2">Step 1</div>
+                        <h3 class="font-semibold text-lg mb-1 text-base-content">Sign Up</h3>
+                        <p class="text-sm text-base-content/70">
+                            Create your account and select language (EN/FI).
+                        </p>
+                    </div>
                 </div>
 
-                <!-- Step 2 -->
-                <div
-                    x-data="{ shown: false }"
-                    x-intersect.once="shown = true"
-                    class="flex flex-col items-center text-center relative transition-all duration-700 transform delay-200"
-                    :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'"
-                >
-                    <div class="w-16 h-16 rounded-full bg-secondary text-white flex items-center justify-center text-2xl shadow-lg mb-4 z-10">
-                        <x-icon name="o-newspaper" class="w-6 h-6" />
+                <!-- Step -->
+                <div class="flex flex-col items-center text-center relative">
+                    <div class="w-16 h-16 rounded-2xl bg-secondary/10 border border-secondary/30
+                      grid place-items-center shadow-sm mb-5">
+                        <x-icon name="o-building-office" class="w-7 h-7 text-secondary" />
                     </div>
-                    <h3 class="font-semibold text-lg mb-1">2. Pick Newsletters</h3>
-                    <p class="text-sm text-base-content/80">Subscribe to a newsletter that fits your interests</p>
+
+                    <div class="w-full max-w-xs bg-base-100/80 border border-base-300 rounded-2xl
+                      p-5 shadow-xl">
+                        <div class="text-xs badge badge-outline border-dashed mb-2">Step 2</div>
+                        <h3 class="font-semibold text-lg mb-1 text-base-content">Company Profile</h3>
+                        <p class="text-sm text-base-content/70">
+                            Add company details so AI can personalize responses.
+                        </p>
+                    </div>
                 </div>
 
-                <!-- Step 3 -->
-                <div
-                    x-data="{ shown: false }"
-                    x-intersect.once="shown = true"
-                    class="flex flex-col items-center text-center relative transition-all duration-700 transform delay-400"
-                    :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'"
-                >
-                    <div class="w-16 h-16 rounded-full bg-accent text-white flex items-center justify-center text-2xl shadow-lg mb-4 z-10">
-                        <x-icon name="o-inbox-arrow-down" class="w-6 h-6" />
+                <!-- Step -->
+                <div class="flex flex-col items-center text-center relative">
+                    <div class="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/30
+                      grid place-items-center shadow-sm mb-5">
+                        <x-icon name="o-document-check" class="w-7 h-7 text-accent" />
                     </div>
-                    <h3 class="font-semibold text-lg mb-1">3. Get Content</h3>
-                    <p class="text-sm text-base-content/80">Curated VC insights delivered to your inbox.</p>
-                </div>
 
+                    <div class="w-full max-w-xs bg-base-100/80 border border-base-300 rounded-2xl
+                      p-5 shadow-xl">
+                        <div class="text-xs badge badge-outline border-dashed mb-2">Step 3</div>
+                        <h3 class="font-semibold text-lg mb-1 text-base-content">
+                            Questionnaire & Report
+                        </h3>
+                        <p class="text-sm text-base-content/70">
+                            Review AI drafts, answer guided questions, export a PDF.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="sm:hidden mt-8 space-y-4">
+                <div class="mx-auto h-px w-12 bg-base-300/70"></div>
+                <div class="mx-auto h-px w-12 bg-base-300/70"></div>
+            </div>
+        </div>
+
+
+        <div class="mt-12">
+            <div class="mx-auto max-w-xl">
+                <div class="w-full h-2 rounded-full bg-base-300 overflow-hidden">
+                    <div class="h-full w-1/3 bg-gradient-to-r from-primary via-secondary to-accent"></div>
+                </div>
+                <div class="mt-2 text-xs text-base-content/60">
+                    Setup progress: Sign Up → Profile → Questionnaire
+                </div>
             </div>
         </div>
     </div>

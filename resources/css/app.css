@@ -7,9 +7,19 @@
 @source "../../vendor/robsontenorio/mary/src/View/Components/**/*.php";
 
 
+
+
 @plugin "daisyui" {
     themes: light --default, dark --prefersdark, cupcake;
+
+
 }
+
+
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+
+:root {
+    --color-primary: #2255ee;
+}

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Country;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ class CountrySeeder extends Seeder
     public function run(): void
     {
         DB::table('countries')->delete();
+
 
         $countries = array(
             array('code' => 'US', 'name' => 'United States'),
@@ -260,6 +262,10 @@ class CountrySeeder extends Seeder
             array('code' => 'ZW', 'name' => 'Zimbabwe'),
         );
 
+
         DB::table('countries')->insert($countries);
+
+
+
     }
 }

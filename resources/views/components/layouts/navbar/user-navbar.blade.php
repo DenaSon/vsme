@@ -1,4 +1,4 @@
-<x-nav sticky>
+<x-nav sticky class="bg-base-200">
 
     <x-slot:brand>
 
@@ -7,16 +7,18 @@
         </label>
 
 
-        <a href="{{ route('home') }}" class="text-primary font-bold text-lg font-alfa">
-            Byblos
-        </a>
+{{--        <a href="{{ route('home') }}" class="text-primary font-bold text-lg font-alfa">--}}
+
+{{--            {{ config('app.name') }}--}}
+
+{{--        </a>--}}
 
     </x-slot:brand>
 
 
     <x-slot:actions>
 
-        <x-button label="Feed" icon="o-rss" link="{{ route('panel.feed.index') }}" class="btn-ghost btn-sm" responsive/>
+        <x-button label="Questionnaire" icon="o-clipboard-document-list" link="{{ route('panel.questionnaire.index') }}" class="btn-ghost btn-sm" responsive/>
 
 
         <x-theme-toggle/>

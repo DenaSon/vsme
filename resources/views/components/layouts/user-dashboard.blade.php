@@ -17,17 +17,17 @@
 
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
+    @stack('css')
 </head>
 
-<body class="font-sans bg-base-200">
+<body class="font-sans bg-base-100">
 
 
 @include('components.layouts.navbar.user-navbar')
 
 
 
-<x-main with-nav collapsible>
+<x-main with-nav full-width>
 
     <x-slot:sidebar drawer="main-drawer" collapsible class="bg-base-200">
 

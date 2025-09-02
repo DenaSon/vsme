@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
@@ -139,29 +140,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return (bool)$this->getAttribute('is_suspended');
     }
 
-    public function followedVCs()
-    {
-        return $this->belongsToMany(Vc::class, 'user_vc_follows')
-            ->withTimestamps();
-    }
-
-    public function isFollowingVC($vcId)
-    {
-        return $this->followedVCs()->where('vc_id', $vcId)->exists();
-    }
 
 
-    public function notificationSetting()
-    {
-        return $this->hasOne(UserNotificationSetting::class);
-    }
 
-    public function sentNewsletters()
-    {
-        return $this->belongsToMany(Newsletter::class, 'newsletter_user_sends')
-            ->withPivot('sent_at')
-            ->withTimestamps();
-    }
+
+
 
     public function hasActiveSubscription(string $plan = 'default'): bool
     {
@@ -189,15 +172,12 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
 
-    protected static function booted()
+    public function company()
     {
-        static::created(function (User $user) {
-            $user->notificationSetting()->create([
-                'frequency' => 'daily',
-                'last_sent_at' => null,
-            ]);
-        });
+
     }
+
+
 
 
 }

@@ -6,20 +6,17 @@
         link="{{ route('panel.index') }}"
     />
 
-    <x-menu-item
 
-        title="VC Directory"
-        icon="o-inbox-stack"
-        link="{{ route('panel.vc.directory') }}"
-    />
 
-    <x-menu-item
-        title="Feed"
-        icon="o-rss"
-        link="{{ route('panel.feed.index') }}"
-    />
+        <x-menu-item
+            separator
+            title="Questionnaire"
+            icon="o-clipboard-document-list"
+            link="{{ route('panel.questionnaire.index') }}"
+        />
 
-    <x-menu-sub title="Settings" icon="o-cog-6-tooth">
+
+        <x-menu-sub title="Settings" icon="o-cog-6-tooth">
         <x-menu-item
             title="Account Settings"
             icon="o-user"

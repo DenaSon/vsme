@@ -24,6 +24,8 @@ class EditProfile extends Component
 
     public function mount()
     {
+
+
         $this->name = auth()->user()->name;
     }
 

@@ -1,39 +1,59 @@
 <x-layouts.app title="{{ $title }}">
+    <section class="min-h-screen grid place-items-center px-4 py-10 bg-base-200">
+        <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
 
-    <div class="hero min-h-screen bg-base-200/80 backdrop-blur-lg rounded-2xl shadow-inner">
-        <div class="hero-content flex-col lg:flex-row-reverse gap-8 lg:gap-24 px-4">
+            <!-- Left: Intro (بدون انیمیشن) -->
+            <div class="order-2 lg:order-1 flex flex-col items-center lg:items-start gap-6">
+                <img
+                    src="{{ asset('static/img/signin-authenticate.svg') }}"
+                    alt="Sign in illustration"
+                    class="w-48 sm:w-64 md:w-80 lg:w-[420px] rounded-xl opacity-90" />
 
-            <div
-                x-data="{ shown: false }"
-                x-intersect.once="shown = true"
-                class="flex-1  flex flex-col items-center lg:items-start space-y-4 sm:space-y-6 transition-all duration-500 transform-3d"
-                :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'"
-            >
-                <img src="{{ asset('static/img/signin-authenticate.svg') }}"
-                     alt="SignIN"
-                     class="opacity-90 w-48 sm:w-64 md:w-80 lg:w-full max-w-md rounded-xl  transition-all duration-300"/>
-
-                <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-extrabold text-primary leading-tight transition-all duration-300">
-                    Log In. Stay Ready
-                </h1>
-
-                <p class="text-sm sm:text-base md:text-lg text-base-content/80 max-w-prose text-center lg:text-left">
-                    Sign in and manage what truly matters in your inbox
-                </p>
+                <div class="space-y-3 text-center lg:text-left">
+                    <h1 class="text-3xl md:text-4xl font-extrabold leading-tight text-base-content">
+                        Sign in to your account
+                    </h1>
+                    <p class="text-base-content/70 max-w-prose">
+                        Access your dashboard, continue questionnaires, and manage reports securely.
+                    </p>
+                    <ul class="text-sm text-base-content/60 space-y-1">
+                        <li>• Privacy-first, role-based access</li>
+                        <li>• Autosave & progress tracking</li>
+                        <li>• Multilingual (EN/FI)</li>
+                    </ul>
+                </div>
             </div>
 
-            <x-card
+            <!-- Right: Auth Card -->
+            <div class="order-1 lg:order-2">
+                <x-card class="w-full max-w-sm mx-auto bg-base-100/90 border border-base-300 rounded-2xl shadow-xl">
+                    <div class="card-body p-6">
+                        <!-- Title -->
+                        <div class="text-center mb-4">
+                            <h2 class="text-2xl font-semibold">Sign In</h2>
+                            <p class="text-xs text-base-content/60 mt-1">Use your email and password to continue</p>
+                        </div>
 
-                class="w-full max-w-sm bg-base-100/90 shadow-lg rounded-2xl backdrop-blur-md border-primary  transition-shadow duration-100">
-                <div class="card-body space-y-0 px-4 py-0">
-                    <h2 class="card-title justify-center font-semibold text-2xl text-center animate-pulse">Sign In</h2>
 
-                    @livewire('auth.login')
-                </div>
-            </x-card>
+
+                        <!-- Livewire Login -->
+                        <div class="mt-2">
+                            @livewire('auth.login')
+                        </div>
+
+
+
+                        <!-- Compliance note -->
+                        <p class="mt-4 text-[11px] leading-5 text-base-content/60">
+                            By signing in you agree to our <a href="" class="link">Terms</a> and
+                            <a href="" class="link">Privacy Policy</a>.
+                        </p>
+
+
+                    </div>
+                </x-card>
+            </div>
 
         </div>
-    </div>
-
-
+    </section>
 </x-layouts.app>

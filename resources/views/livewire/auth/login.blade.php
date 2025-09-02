@@ -14,6 +14,7 @@
         wire:model="password"
         placeholder="Password"
         right
+
     />
 
 

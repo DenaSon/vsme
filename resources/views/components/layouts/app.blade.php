@@ -14,11 +14,12 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+
 </head>
 
 <body class="font-sans antialiased">
 
-    <x-ui.home.navbar/>
+<x-ui.home.navbar/>
 
 <x-main with-nav>
 
@@ -28,7 +29,7 @@
     </x-slot:content>
 </x-main>
 
-    <x-ui.home.footer/>
+<x-ui.home.footer/>
 
 <x-toast position="toast-top toast-center"/>
 </body>

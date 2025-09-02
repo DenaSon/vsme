@@ -19,10 +19,10 @@ class NavbarNotification extends Component
     public function render()
     {
         $notifications = auth()->user()
-            ->unreadNotifications()
+            ?->unreadNotifications()
             ->latest()
             ->limit(5)
-            ->get();
+            ?->get();
         return view('livewire.components.dashboard.navbar-notification', compact('notifications'));
     }
 }
