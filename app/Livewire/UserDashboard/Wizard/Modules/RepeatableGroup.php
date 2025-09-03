@@ -5,6 +5,7 @@ namespace App\Livewire\UserDashboard\Wizard\Modules;
 use App\Models\Country;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Modelable;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class RepeatableGroup extends Component
@@ -21,15 +22,45 @@ class RepeatableGroup extends Component
 
     public ?string $companyType = null;
 
-    public bool $showMapModal = false;
-    public ?int $activeIndex = null;
-    public ?string $picked = null;
-    public string $mapDomId; // unique id per component
-    public string $componentId;
 
 
     public $countryOptions;
     public array $naceOptions = [];
+
+
+
+
+    public bool $showMap = false;
+    public ?int $activeIndex = null;
+    public ?string $mapValue = null;
+    public ?string $mapDomId = null;
+
+    public function openMap(int $index): void
+    {
+        $this->activeIndex = $index;
+        $this->mapValue    = data_get($this->value, "{$index}.geolocation"); // مقدار قبلی (اگر وجود داشته)
+        $this->mapDomId    = 'map-'.$this->id().'-row-'.$index.'-'.uniqid();  // DOM id یکتا برای این نوبت
+        $this->showMap     = true;
+    }
+
+    public function updatedMapValue($val): void
+    {
+        if ($this->activeIndex !== null) {
+            data_set($this->value, "{$this->activeIndex}.geolocation", $val);
+        }
+    }
+
+
+    public function updatedShowMap($isOpen): void
+    {
+
+        if ($isOpen) {
+
+            $this->dispatch('leaflet:init', id: 'map-container');
+        }
+    }
+
+
 
 
     protected function makeRow(): array
@@ -105,8 +136,6 @@ class RepeatableGroup extends Component
             ],
         ])->all();
 
-        $this->mapDomId = 'leaflet-picker-' . uniqid();
-        $this->componentId = $this->id();
 
         if ($this->value === []) {
             $this->addRow();
@@ -116,47 +145,7 @@ class RepeatableGroup extends Component
 
     }
 
-    public function openMap(int $index): void
-    {
-        $this->activeIndex = $index;
-        $this->picked = null;
 
-        $existing = data_get($this->value, "$index.geolocation");
-        if (is_string($existing) && str_contains($existing, '|')) {
-            $this->picked = $existing;
-        }
-
-        $this->showMapModal = true;
-
-
-        $this->dispatch('open-map', id: $this->mapDomId, coords: $this->picked, componentId: $this->componentId);
-
-
-    }
-
-    #[\Livewire\Attributes\On('map-picked')]
-    public function onMapPicked($payload = null): void
-    {
-        if (is_array($payload) && isset($payload['lat'], $payload['lng'])) {
-            $this->picked = "{$payload['lat']} | {$payload['lng']}";
-        }
-    }
-
-    public function confirmPick(): void
-    {
-        if ($this->activeIndex === null) return;
-        if (!$this->picked) {
-            $this->warning('No location selected', 'Click on the map to pick one.');
-            return;
-        }
-
-        data_set($this->value, "{$this->activeIndex}.geolocation", $this->picked);
-
-        $this->showMapModal = false;
-        $this->success('Location set', $this->picked);
-    }
-
-    /** Livewire هر رندر این را صدا می‌زند */
     public function hydrate(): void
     {
         if (!is_array($this->value)) $this->value = [];
