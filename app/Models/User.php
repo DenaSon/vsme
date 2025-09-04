@@ -47,6 +47,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
+        'locale',
         'email',
         'password',
         'is_suspended',
@@ -172,10 +173,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
 
+
+
     public function company()
     {
 
     }
+
+
+
+ //Language
 
 
 

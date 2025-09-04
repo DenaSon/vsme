@@ -43,7 +43,7 @@
 
 
 
-
+        <x-button wire:click="Showlan" label="Show Language"/>
 
 
 

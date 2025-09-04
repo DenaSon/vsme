@@ -75,6 +75,8 @@ class RepeatableGroup extends Component
     {
 
 
+
+
         $this->q = $q;
         $this->value = $value ?? [];
         $this->companyType = $companyType;
@@ -96,14 +98,16 @@ class RepeatableGroup extends Component
 
         if (in_array('country', $this->fields, true)) {
 
-            $this->countryOptions = Country::query()
-                ->orderBy('name')
-                ->get(['code', 'name'])
-                ->map(fn($c) => [
-                    'label' => $c->name,
-                    'value' => $c->code,
-                ])
-                ->all();
+
+              $this->countryOptions = Country::query()
+                  ->orderBy('name')
+                  ->get(['code', 'name'])
+                  ->map(fn($c) => [
+                      'label' => $c->name,
+                      'value' => $c->code,
+                  ])
+                  ->all();
+
 
             if (in_array('nace', $this->fields, true)) {
                 $this->naceOptions = collect([

@@ -57,20 +57,35 @@ class Wizard extends Component
             ->orderBy('order')
             ->get();
 
-        $this->questions = [];
+        $loc       = app()->getLocale();
+        $fallback  = config('app.fallback_locale', 'en');
+
         foreach ($disclosures as $d) {
             foreach ($d->questions as $question) {
-                $arr = $question->toArray();
-                $arr['options'] = $question->options->map(fn($opt) => [
-                    'key'   => $opt->key,
-                    'value' => $opt->value,
-                    'label' => $opt->getTranslation('label', app()->getLocale()) ?? $opt->label,
-                    'kind'  => $opt->kind,
-                    'extra' => $opt->extra,
-                ])->values()->all();
-                $arr['title'] = $question->getTranslation('title', app()->getLocale()) ?? $question->title;
+
+                $arr = [
+                    'key'     => $question->key,
+                    'number'  => $question->number,
+                    'type'    => $question->type,
+                    'rules'   => $question->rules,
+                    'options' => $question->options->map(fn($opt) => [
+                        'key'   => $opt->key,
+                        'value' => $opt->value,
+                        'label' => $opt->getTranslation('label', $loc)
+                            ?? $opt->getTranslation('label', $fallback)
+                                ?? $opt->label,
+                        'kind'  => $opt->kind,
+                        'extra' => $opt->extra,
+                    ])->values()->all(),
+                    'title'         => $question->getTranslation('title', $loc, true),         // ← fallback
+                    'help_official' => $question->getTranslation('help_official', $loc, true), // ← fallback
+                    'help_friendly' => $question->getTranslation('help_friendly', $loc, true), // ← fallback
+                ];
+
                 $this->questions[$question->key] = $arr;
+               // logger()->info('Q help', ['key'=>$question->key, 'ho'=>$arr['help_official'], 'hf'=>$arr['help_friendly']]);
             }
+
         }
 
 
@@ -492,6 +507,8 @@ class Wizard extends Component
         $i = array_search($key, $keys, true);
         return $keys[max($i - 1, 0)] ?? $key;
     }
+
+
 
 
 

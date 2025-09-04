@@ -86,6 +86,8 @@ class VsmeSeeder extends Seeder
                 'rules'=>['required'=>true],
                 'order'=>1,
                 'is_active'=>true,
+                'help_official'   => ['en' => 'Our ESG framework ensures that our operations adhere to the highest standards of environmental responsibility, social fairness, and corporate governance. We are committed to transparent reporting and continuous improvement across all ESG dimensions.'.rand(0,1000)],
+                'help_friendly'   => ['en' => 'We take ESG seriously! From reducing our environmental footprint to supporting our communities and maintaining strong governance, we’re constantly improving and sharing our progress openly.'.rand(0,1000)],
             ]
         );
 
@@ -114,6 +116,9 @@ class VsmeSeeder extends Seeder
                 'rules'=>['required'=>true,'in'=>['individual','consolidated']],
                 'order'=>2,
                 'is_active'=>true,
+                'help_official'   => ['en' => 'Our ESG framework ensures that our operations adhere to the highest standards of environmental responsibility, social fairness, and corporate governance. We are committed to transparent reporting and continuous improvement across all ESG dimensions.'.rand(0,1000)],
+                'help_friendly'   => ['en' => 'We take ESG seriously! From reducing our environmental footprint to supporting our communities and maintaining strong governance, we’re constantly improving and sharing our progress openly.'.rand(0,1000)],
+
             ]
         );
 
@@ -140,7 +145,8 @@ class VsmeSeeder extends Seeder
                 'number' => 3,
                 'type'   => 'repeatable-group',
                 'title'  => ['en' => 'Reporting company/companies'],
-                //'help'   => ['en' => 'Add one or more reporting entities as applicable.'],
+                'help_official'   => ['en' => 'Our ESG framework ensures that our operations adhere to the highest standards of environmental responsibility, social fairness, and corporate governance. We are committed to transparent reporting and continuous improvement across all ESG dimensions.'.rand(0,1000)],
+                'help_friendly'   => ['en' => 'We take ESG seriously! From reducing our environmental footprint to supporting our communities and maintaining strong governance, we’re constantly improving and sharing our progress openly.'.rand(0,1000)],
                 'rules'  => [
                     'required'   => true,
                     'array'      => true,
@@ -150,15 +156,15 @@ class VsmeSeeder extends Seeder
                         'name'            => ['required','string','max:200'],
                         'street_address'  => ['required','string','max:300'],
                         'city'            => ['required','string','max:120'],
-                        'country'         => ['required','in:FI,SE,DE,FR,IR'],   // نمونه
+                        'country'         => ['required'],   // نمونه
                         'geolocation'     => ['required','string','max:120'],   // lat/lon یا plus code
-                        'nace'            => ['required','in:A.1.1.4,C.10.1.1,G.47.1.1'], // نمونه
+                        'nace'            => ['required'],
                     ],
                 ],
                 'order'     => 3,
                 'is_active' => true,
                 'meta'      => [
-                    // نمونه: اگر Q2 = individual → حداکثر یک ردیف (برای UI)
+
                     'max_rows_if' => [
                         ['when' => ['key' => 'b1.q2', 'eq' => 'individual'], 'max' => 1],
                     ],
@@ -166,7 +172,7 @@ class VsmeSeeder extends Seeder
             ]
         );
 
-        // فیلدهای هر ردیف (kind = field)
+
         QuestionOption::updateOrCreate(
             ['question_id' => $q3->id, 'kind' => 'field', 'key' => 'name'],
             [
@@ -258,16 +264,28 @@ class VsmeSeeder extends Seeder
             [
                 'number'   => 4,
                 'type'     => 'radio-with-other',     // 👈 نوع اختصاصی
-                'title'    => ['en' => "What is your company's legal form?"],
+                'title' => [
+                    'en' => "What is your company's legal form?",
+                    'fi' => "Mikä on yrityksesi oikeudellinen muoto?",
+                ],
                 'rules'    => [
-                    // ساختار قوانین از DB (داینامیک)
+
                     'type'   => 'radio-with-other',
                     'choice' => [ 'required' => true, 'in' => ['pll','sole','partnership','cooperative','other'] ],
-                    'other'  => [ 'required_if' => 'other', 'min' => 3, 'max' => 200 ],
+                   // 'other'  => [ 'required_if:choice,other', 'min' => 3, 'max' => 200 ],
                 ],
                 'order'    => 4,
                 'is_active'=> true,
-            ]
+                'help_official' => [
+                    'en' => 'Our ESG framework ensures that our operations adhere to the highest standards of environmental responsibility, social fairness, and corporate governance. We are committed to transparent reporting and continuous improvement across all ESG dimensions.' . rand(0,1000),
+                    'fi' => 'ESG-kehyksemme varmistaa, että toimintamme noudattaa korkeimpia ympäristövastuun, sosiaalisen oikeudenmukaisuuden ja yrityshallinnon standardeja. Olemme sitoutuneet avoimeen raportointiin ja jatkuvaan parantamiseen kaikilla ESG-osa-alueilla.' . rand(0,1000),
+                ],
+                'help_friendly' => [
+                    'en' => 'We take ESG seriously! From reducing our environmental footprint to supporting our communities and maintaining strong governance, we’re constantly improving and sharing our progress openly.' . rand(0,1000),
+                    'fi' => 'Otamme ESG:n vakavasti! Ympäristöjalanjälkemme pienentämisestä yhteisöjemme tukemiseen ja vahvan hallinnon ylläpitämiseen – parannamme jatkuvasti ja jaamme edistymisemme avoimesti.' . rand(0,1000),
+                ]
+              ]
+
         );
 
         $opts = [

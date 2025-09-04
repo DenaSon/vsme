@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Cashier\Subscription;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
@@ -29,11 +30,10 @@ class AppServiceProvider extends ServiceProvider
         if (!App::environment('local')) {
             URL::forceScheme('https');
         }
-
-
         Schema::defaultStringLength(190);
 
 
-
     }
+
+
 }

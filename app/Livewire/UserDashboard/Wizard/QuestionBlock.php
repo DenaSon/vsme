@@ -15,6 +15,8 @@ class QuestionBlock extends Component
 
     use Toast;
 
+    public $helpModal = false;
+
     /** @var array{key:string,number:int,title:string,type:string,options?:array} */
     public array $q = [];
     public int $total = 0;

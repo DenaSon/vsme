@@ -15,7 +15,7 @@
 
 
 
-        <x-button wire:click.debounce.150ms="next" label="Next" spinner icon-right="o-arrow-right" class="btn-primary sm:w-auto min-w-[7.5rem]"/>
+        <x-button wire:loading.attr="disabled" wire:click.debounce.150ms="next" label="Next" spinner icon-right="o-arrow-right" class="btn-primary sm:w-auto min-w-[7.5rem]"/>
 
 
 

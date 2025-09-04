@@ -1,5 +1,8 @@
 <div>
-
+    @php
+        $ho = $q['help_official'] ?? null;
+        $hf = $q['help_friendly'] ?? null;
+    @endphp
     @if(!$q)
         <div class="alert alert-warning mt-6">No question loaded.</div>
     @else
@@ -22,6 +25,12 @@
 
 
 
+
+
+
+
+
+
         @includeIf("livewire.user-dashboard.wizard.partials.inputs.{$q['type']}", [
             'q'      => $q,
             'value'  => $value,
@@ -29,6 +38,9 @@
 
         ])
           @endif
+
+
+
 
 
 

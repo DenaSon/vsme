@@ -1,17 +1,21 @@
 <?php
 
+use App\Http\Controllers\Locale\LanguageController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Livewire\Actions\Logout;
 use App\Livewire\AdminDashboard\Crawler\NewsletterIndex;
 use App\Livewire\AdminDashboard\Documents\DocIndex;
 use App\Livewire\Home\Index;
 use App\Livewire\UserDashboard\Setting\DeliverySetting;
-use App\Livewire\Wizard\ParentWizard;
 use Illuminate\Support\Facades\Route;
 use Laravel\Cashier\Http\Controllers\WebhookController;
 
 
 Route::get('/', Index::class)->name('home');
+
+
+Route::get('/locale/{locale}', [LanguageController::class, 'switch'])
+    ->name('locale.switch');
 
 Route::prefix('core')
     ->as('core.')
@@ -72,6 +76,9 @@ Route::prefix('panel')
 
 
    });
+
+
+
 
 
 Route::get('logout', Logout::class);

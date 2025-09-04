@@ -54,12 +54,7 @@
 
                 @guest
 
-                    <x-dropdown label="Language" class="btn-sm">
-
-                        <x-menu-item title="English" wire:click.stop="delete2" spinner="" />
-                        <x-menu-item title="Finnish" wire:click.stop="delete3"/>
-
-                    </x-dropdown>
+                   @livewire('components.locale.language-switcher')
 
 
                     <x-button

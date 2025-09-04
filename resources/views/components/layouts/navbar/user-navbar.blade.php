@@ -18,7 +18,10 @@
 
     <x-slot:actions>
 
+
+
         <x-button label="Questionnaire" icon="o-clipboard-document-list" link="{{ route('panel.questionnaire.index') }}" class="btn-ghost btn-sm" responsive/>
+        @livewire('components.locale.language-switcher')
 
 
         <x-theme-toggle/>
