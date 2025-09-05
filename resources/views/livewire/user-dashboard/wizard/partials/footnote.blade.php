@@ -1,10 +1,25 @@
 @php
-    $ho = data_get($this->currentQuestion, 'help_official');
-    $hf = data_get($this->currentQuestion, 'help_friendly');
+    // اگر q آرایه‌ی translatable باشد:
+    $locale = app()->getLocale();
+    $fallback = config('app.fallback_locale', 'en');
+
+    $hoRaw = data_get($q, 'help_official');
+    $hfRaw = data_get($q, 'help_friendly');
+
+    // helper کوچک برای آرایه/استرینگ
+    $tr = function ($val) use ($locale, $fallback) {
+        if (is_array($val)) {
+            return $val[$locale] ?? $val[$fallback] ?? '';
+        }
+        return (string) $val;
+    };
+
+    $ho = $tr($hoRaw);
+    $hf = $tr($hfRaw);
 @endphp
 
 @if($ho || $hf)
-    <div class="mt-8 pt-6 border-t border-base-300 w-full clear-both">
+    <div wire:key="foot-{{ $currentKey }}" class="mt-8 pt-6 border-t border-base-300 w-full clear-both">
         @if($ho)
             <div class="alert alert-soft items-start mb-3">
                 <x-heroicon-o-academic-cap class="w-5 h-5 shrink-0 mt-0.5"/>
@@ -15,15 +30,19 @@
         @endif
 
         @if($hf)
-            <div x-data="{open:false}" class="rounded-xl p-3">
+            <div x-data="{open:false, __k:'{{ $currentKey }}'}" class="rounded-xl p-3">
                 <button type="button" class="btn btn-ghost btn-sm gap-2" @click="open = !open">
                     <x-heroicon-o-light-bulb class="w-5 h-5"/>
                     <span>{{ __('Tips') }}</span>
                 </button>
-                <div x-show="open" x-transition class="mt-2 text-sm text-base-content/80 leading-relaxed">
+                {{-- با تغییر سوال، open ریست شود --}}
+                <div x-show="open" x-transition x-effect="open = false; __k = '{{ $currentKey }}'"
+                     class="mt-2 text-sm text-base-content/80 leading-relaxed">
                     {!! nl2br(e($hf)) !!}
                 </div>
             </div>
         @endif
     </div>
 @endif
+
+

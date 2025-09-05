@@ -11,12 +11,12 @@
             @if ($i === $current)
                 <li class="relative z-10" aria-current="step">
                     <div class="grid place-items-center w-12 h-12 rounded-full border-2 border-primary bg-base-100">
-                        {{-- وقتی لودینگ فعال باشه اسپینر نشون بده --}}
+
                         <div wire:loading wire:target="next,back">
                             <x-icon name="o-arrow-path" class="w-5 h-5 text-primary animate-spin"/>
                         </div>
 
-                        {{-- وقتی لودینگ نیست همون شماره و total --}}
+
                         <div wire:loading.remove wire:target="next,back"
                              class="flex flex-col items-center leading-none">
                             <span class="text-primary text-sm font-semibold">{{ $i }}</span>
@@ -34,4 +34,7 @@
             @endif
         @endfor
     </ol>
+
 </aside>
+
+

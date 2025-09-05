@@ -5,6 +5,7 @@
         'current' => $this->current,
         'total'   => $this->total,
         'visible' => $this->visible,
+
     ])
 
 
@@ -30,7 +31,6 @@
             :moduleChoice="$this->moduleChoice"
             :companyType="$this->companyType"
             :q="$questions[$this->currentKey] ?? []"
-            :total="$total"
             wire:model="answers.{{ $this->currentKey }}"
             wire:key="q-{{ $this->currentKey }}"
         />
@@ -41,12 +41,9 @@
         @include('livewire.user-dashboard.wizard.partials.actions')
 
 
-
-
-        <x-button wire:click="Showlan" label="Show Language"/>
-
-
-
-        @include('livewire.user-dashboard.wizard.partials.footnote')
+        @include('livewire.user-dashboard.wizard.partials.footnote', [
+     'q' => $questions[$this->currentKey] ?? [],
+     'currentKey' => $this->currentKey,
+ ])
     </section>
 </div>

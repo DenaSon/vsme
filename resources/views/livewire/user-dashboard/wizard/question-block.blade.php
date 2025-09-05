@@ -4,7 +4,7 @@
         $hf = $q['help_friendly'] ?? null;
     @endphp
     @if(!$q)
-        <div class="alert alert-warning mt-6">No question loaded.</div>
+        <div class="alert alert-warning mt-6">{{__("No question loaded.")}}</div>
     @else
         {{-- Header --}}
         <div  class="mt-6 flex items-start justify-between gap-3">
@@ -23,14 +23,6 @@
         </div>
 
 
-
-
-
-
-
-
-
-
         @includeIf("livewire.user-dashboard.wizard.partials.inputs.{$q['type']}", [
             'q'      => $q,
             'value'  => $value,
@@ -38,10 +30,6 @@
 
         ])
           @endif
-
-
-
-
 
 
 </div>

@@ -34,10 +34,12 @@ class Wizard extends Component
     public string $currentKey = 'b1.q1';
     public array $answers = [];
 
-    public int $total = 80;
+    //public int $total = 80;
 
     public ?string $moduleChoice = null;   // 'A' | 'B'
     public ?string $companyType  = null;
+
+
 
 
     public function mount(): void
@@ -105,9 +107,7 @@ class Wizard extends Component
             ->where('question_key', 'b1.q1')
             ->first()?->value;
 
-        $this->companyType = Answer::where('report_id', $this->report->id)
-            ->where('question_key', 'b1.q2')
-            ->first()?->value;
+
 
 
 
@@ -188,7 +188,10 @@ class Wizard extends Component
         }
     }
 
-
+    private function recalcTotal(): void
+    {
+        $this->total = ($this->moduleChoice === 'A') ? 40 : 80;
+    }
 
 
     /**
@@ -232,7 +235,16 @@ class Wizard extends Component
 
     public function getTotalProperty(): int
     {
-        return count($this->questions);
+        $choice = $this->moduleChoice
+            ?? data_get($this->answers, 'b1.q1')
+            ?? $this->report?->module_choice
+            ?? 'A';
+
+        $choice = strtolower((string) $choice);
+
+        $isBasic = in_array($choice, ['a','basic','module_a','basic_module'], true);
+
+        return $isBasic ? 40 : 80; // جامع = 80
     }
 
     public function getIndexProperty(): int
@@ -253,10 +265,12 @@ class Wizard extends Component
 
         if ($key === 'b1.q1') {
             $this->moduleChoice = $value;
+
         }
         if ($key === 'b1.q2') {
             $this->companyType = $value;
         }
+        $this->recalcTotal();
     }
 
 

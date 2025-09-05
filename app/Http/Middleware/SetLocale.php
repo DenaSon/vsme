@@ -1,9 +1,10 @@
 <?php
-// app/Http/Middleware/SetLocale.php
+
 namespace App\Http\Middleware;
 
+use Auth;
 use Closure;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cookie;
 
 
 class SetLocale
@@ -13,11 +14,27 @@ class SetLocale
     public function handle($request, Closure $next)
     {
 
-       // Log::info('Session:'. session()->get('locale'));
+        $supportedLocales = config('app.supported_locales');
 
-        app()->setLocale(session()->get('locale'));
+        $locale = null;
 
 
+        if (Auth::check() && Auth::user()->locale) {
+            $locale = Auth::user()->locale;
+        }
+
+        $locale = $locale ?? session('locale');
+
+        $locale = $locale ?? Cookie::get('locale');
+
+        $locale = $locale ?? config('app.locale');
+
+
+        if (!in_array($locale, $supportedLocales, true)) {
+            $locale = config('app.locale');
+        }
+
+        app()->setLocale($locale);
 
         return $next($request);
     }
