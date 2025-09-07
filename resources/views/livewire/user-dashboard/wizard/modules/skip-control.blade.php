@@ -1,17 +1,17 @@
 <div class="flex items-center gap-2">
     <details class="dropdown dropdown-end">
         <summary class="btn btn-outline min-w-[7rem]">
-            Skip
+            {{__('ui.skip')}}
             <x-heroicon-o-chevron-down class="w-4 h-4 ms-1"/>
         </summary>
         <ul class="dropdown-content menu p-2 shadow-md bg-base-100 rounded-box w-56 right-0">
             <li><button type="button" wire:click="chooseNA">N/A</button></li>
-            <li><button type="button" wire:click="openClassified">Classified Information</button></li>
+            <li><button type="button" wire:click="openClassified">{{__('ui.classified_information')}}</button></li>
         </ul>
     </details>
 
 
-    <x-modal wire:model="showModal" title="Classified Information" separator subtitle="{{ $questionTitle ?? '' }}">
+    <x-modal wire:model="showModal" title="{{__('ui.classified_information')}}" separator subtitle="{{ $questionTitle ?? '' }}">
 
 
             <label class="block text-sm font-medium mb-1"></label>
@@ -26,13 +26,13 @@
 
         <x-slot:actions>
             <x-button
-                label="Cancel"
+                :label="__('ui.cancel')"
                 class="btn-ghost"
                 wire:click="$set('showModal', false)"
             />
 
             <x-button
-                label="Confirm"
+                :label="__('ui.confirm')"
                 class="btn-primary"
                 wire:click="confirmClassified"
             />

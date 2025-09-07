@@ -48,7 +48,7 @@ class SkipControl extends Component
     public function confirmClassified(): void
     {
 
-        $this->validate(['note' =>'string|required|max:500|min:10']);
+        $this->validate(['note' =>'string|required|max:250|min:5']);
 
         $this->dispatch('wizard.skip', $this->currentKey, 'classified', $this->note);
         $this->reset(['showModal', 'note', 'type']);

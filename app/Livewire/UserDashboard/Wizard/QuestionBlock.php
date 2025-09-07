@@ -13,6 +13,8 @@ class QuestionBlock extends Component
     public ?string $moduleChoice = null;
     public ?string $companyType  = null;
 
+
+
     use Toast;
 
     public $helpModal = false;
@@ -46,16 +48,30 @@ class QuestionBlock extends Component
 
     private function normalizeValueForType(): void
     {
+        if (($this->q['type'] ?? null) === 'radio-cards') {
+            if (is_string($this->value)) {
+
+                $this->value = ['choice' => $this->value, 'desc' => null];
+            } elseif (is_array($this->value)) {
+
+                $this->value += ['choice' => null, 'desc' => null];
+            } else {
+
+                $this->value = ['choice' => null, 'desc' => null];
+            }
+        }
+
         if (($this->q['type'] ?? null) === 'radio-with-other') {
-            if (is_array($this->value)) {
-                $this->value += ['choice' => null, 'other_text' => null];
-            } elseif (is_string($this->value)) {
+            if (is_string($this->value)) {
                 $this->value = ['choice' => $this->value, 'other_text' => null];
+            } elseif (is_array($this->value)) {
+                $this->value += ['choice' => null, 'other_text' => null];
             } else {
                 $this->value = ['choice' => null, 'other_text' => null];
             }
         }
     }
+
 
 
 

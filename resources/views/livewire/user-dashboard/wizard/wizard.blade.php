@@ -3,7 +3,7 @@
 
     @include('livewire.user-dashboard.wizard.partials.steps-rail', [
         'current' => $this->current,
-        'total'   => $this->total,
+
         'visible' => $this->visible,
 
     ])
@@ -31,6 +31,7 @@
             :moduleChoice="$this->moduleChoice"
             :companyType="$this->companyType"
             :q="$questions[$this->currentKey] ?? []"
+            :total="$this->total"
             wire:model="answers.{{ $this->currentKey }}"
             wire:key="q-{{ $this->currentKey }}"
         />
@@ -46,4 +47,7 @@
      'currentKey' => $this->currentKey,
  ])
     </section>
+
+
+
 </div>

@@ -18,6 +18,17 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('css')
+
+
+    @assets
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
+    @endassets
+
+
+
+
+
 </head>
 
 <body class="font-sans bg-base-100">

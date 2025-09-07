@@ -16,8 +16,8 @@
     <div class="flex-1 relative min-w-0 overflow-hidden pe-10">
         <progress
             class="progress progress-primary w-full h-4 rounded-full"
-            value="{{ $progress }}"
-            max="100"
+            value="{{ $index }}"
+            max="{{$this->total}}"
             aria-label="Progress">
         </progress>
 

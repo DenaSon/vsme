@@ -27,7 +27,7 @@ return new class extends Migration
                 ->nullable()
                 ->comment('Answer payload as JSON (works for text, options, multi, numbers, etc.)');
 
-            $table->string('skipped_reason', 32)
+            $table->string('skipped_reason', 250)
                 ->nullable()
                 ->comment('If skipped, the reason code (e.g., "na", "classified")');
 

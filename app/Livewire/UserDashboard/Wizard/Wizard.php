@@ -18,27 +18,19 @@ use Throwable;
 
 #[Layout('components.layouts.user-dashboard')]
 #[Title('Questionnaire Wizard')]
-
-
 class Wizard extends Component
 {
     use Toast;
 
-    public $answer = 'both';
-
     public $currentStep = 2;
     public ?Report $report = null;
-
 
     public array $questions = [];
     public string $currentKey = 'b1.q1';
     public array $answers = [];
 
-    //public int $total = 80;
-
     public ?string $moduleChoice = null;   // 'A' | 'B'
-    public ?string $companyType  = null;
-
+    public ?string $companyType  = null;   // 'individual' | 'consolidated'
 
 
 
@@ -47,7 +39,6 @@ class Wizard extends Component
         $q = Questionnaire::where([
             'code' => 'vsme', 'version' => 'v1', 'is_active' => true
         ])->firstOrFail();
-
 
         $disclosures = $q->disclosures()
             ->where('is_active', true)
@@ -59,17 +50,16 @@ class Wizard extends Component
             ->orderBy('order')
             ->get();
 
-        $loc       = app()->getLocale();
-        $fallback  = config('app.fallback_locale', 'en');
+        $loc      = app()->getLocale();
+        $fallback = config('app.fallback_locale', 'en');
 
         foreach ($disclosures as $d) {
             foreach ($d->questions as $question) {
-
                 $arr = [
                     'key'     => $question->key,
                     'number'  => $question->number,
                     'type'    => $question->type,
-                    'rules'   => $question->rules,
+                    'rules'   => $question->rules, //Hardcoded for MVP
                     'options' => $question->options->map(fn($opt) => [
                         'key'   => $opt->key,
                         'value' => $opt->value,
@@ -79,47 +69,45 @@ class Wizard extends Component
                         'kind'  => $opt->kind,
                         'extra' => $opt->extra,
                     ])->values()->all(),
-                    'title'         => $question->getTranslation('title', $loc, true),         // ← fallback
-                    'help_official' => $question->getTranslation('help_official', $loc, true), // ← fallback
-                    'help_friendly' => $question->getTranslation('help_friendly', $loc, true), // ← fallback
+                    'title'         => $question->getTranslation('title', $loc, true),
+                    'help_official' => $question->getTranslation('help_official', $loc, true),
+                    'help_friendly' => $question->getTranslation('help_friendly', $loc, true),
+                    'meta'          => $question->meta ?? [],
                 ];
-
                 $this->questions[$question->key] = $arr;
-               // logger()->info('Q help', ['key'=>$question->key, 'ho'=>$arr['help_official'], 'hf'=>$arr['help_friendly']]);
             }
-
         }
-
 
         $firstKey = array_key_first($this->questions) ?? 'b1.q1';
 
 
-        $companyId   = 1;
-        $this->report = Report::firstOrCreate(
-            ['company_id' => $companyId, 'questionnaire_id' => $q->id, 'year' => now()->year],
-            ['status' => 'draft', 'module_choice' => 'A', 'current_key' => $firstKey]
-        );
 
 
-        //دسترسی به سوالات ساختاری  اول و دوم <_______________________________________
-
-        $this->moduleChoice = Answer::where('report_id', $this->report->id)
-            ->where('question_key', 'b1.q1')
-            ->first()?->value;
+       $this->loadReport($q->id,$firstKey);
 
 
 
 
-
-
-        $existing = \App\Models\Answer::where('report_id', $this->report->id)
-            ->pluck('value', 'question_key');
-        $this->answers = [];
+        // Load saved answers
+        $existing = Answer::where('report_id', $this->report->id)->pluck('value', 'question_key');
         foreach ($existing as $k => $v) {
             data_set($this->answers, $k, $v);
         }
 
+        // Normalize/rip values we depend on
+        $this->normalizeRadioCards('b1.q1');
+        $this->normalizeRadioCards('b1.q2');
+        $this->normalizeRadioCards('b1.q5');
 
+        // derive moduleChoice & companyType
+        $this->moduleChoice = data_get($this->answers, 'b1.q1.choice')    // A/B
+            ?? $this->report->module_choice
+            ?? 'A';
+
+        $this->companyType  = data_get($this->answers, 'b1.q2.choice')    // individual/consolidated
+            ?? null;
+
+        // Current key
         $savedKey = $this->report->current_key;
         if (!$savedKey || !array_key_exists($savedKey, $this->questions)) {
             $savedKey = $this->firstUnansweredKey() ?? $firstKey;
@@ -128,30 +116,57 @@ class Wizard extends Component
         $this->currentKey = $savedKey;
     }
 
+    private function loadReport(int|string $questionnaireId, string $firstKey): void
+    {
+        $companyId = 1; // یا Auth::user()->company_id
+
+        try {
+            $this->report = Report::firstOrCreate(
+                [
+                    'company_id'       => $companyId,
+                    'questionnaire_id' => $questionnaireId,
+                    'year'             => now()->year,
+                ],
+                [
+                    'status'        => 'draft',
+                    'module_choice' => 'A',
+                    'current_key'   => $firstKey,
+                ]
+            );
+
+            // مطمئن شو که یک instance از Report داریم
+            if (!$this->report instanceof Report) {
+                throw new \RuntimeException("Failed to load or create report.");
+            }
+
+        } catch (\Throwable $e) {
+            Log::error("Failed to load report: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            $this->report = null;  // Optionally keep null and handle later
+            $this->warning('Could not load report. Please try again later.');
+        }
+    }
+
+
 
     protected function firstUnansweredKey(): ?string
     {
         foreach (array_keys($this->questions) as $key) {
             $val = data_get($this->answers, $key);
-            if ($val === null || $val === '') {
+            if ($val === null || $val === '' || (is_array($val) && empty(array_filter($val, fn($x) => $x !== null && $x !== '')))) {
                 return $key;
             }
         }
+
         return null;
     }
-
-
 
     public function getCurrentQuestionProperty(): array
     {
         return $this->questions[$this->currentKey] ?? [];
     }
 
-
     public function next(): void
     {
-        //dd(data_get($this->answers, $this->currentKey));
-
         try {
             $this->validate(
                 $this->rulesForCurrent(),
@@ -162,22 +177,10 @@ class Wizard extends Component
             DB::transaction(function () {
                 $this->persistCurrentAnswer();
 
-                if ($this->currentKey === 'b1.q1') {
-                    $this->report->module_choice = data_get($this->answers, 'b1.q1');
-                }
-
-                if ($this->currentKey === 'b1.q2') {
-                    $this->report->mode = data_get($this->answers, 'b1.q2');
-                }
-
+                // برو جلو
                 $this->currentKey = $this->nextKey($this->currentKey);
-                $this->report->current_key = $this->currentKey;
-                $this->report->save();
+                $this->report->update(['current_key' => $this->currentKey]);
             });
-
-
-
-
 
         } catch (ValidationException $e) {
             $this->warning(__('Please select an option.'));
@@ -188,15 +191,6 @@ class Wizard extends Component
         }
     }
 
-    private function recalcTotal(): void
-    {
-        $this->total = ($this->moduleChoice === 'A') ? 40 : 80;
-    }
-
-
-    /**
-     * @throws Throwable
-     */
     public function back(): void
     {
         DB::transaction(function () {
@@ -204,47 +198,29 @@ class Wizard extends Component
             $this->currentKey = $this->prevKey($this->currentKey);
             $this->report->update(['current_key' => $this->currentKey]);
         });
-
-
     }
 
     public function skip(string $reason): void
     {
         $this->answers[$this->currentKey] = null;
-
         $this->next();
-    }
-
-
-    public function changeStep(): void
-    {
-        $this->currentStep = 1;
     }
 
     public function getCurrentProperty(): int
     {
-
         return $this->questions[$this->currentKey]['number'] ?? 1;
     }
 
     public function getVisibleProperty(): int
     {
-
         return 12;
     }
 
     public function getTotalProperty(): int
     {
-        $choice = $this->moduleChoice
-            ?? data_get($this->answers, 'b1.q1')
-            ?? $this->report?->module_choice
-            ?? 'A';
-
-        $choice = strtolower((string) $choice);
-
+        $choice = strtolower((string)($this->moduleChoice ?? data_get($this->answers, 'b1.q1.choice') ?? $this->report?->module_choice ?? 'a'));
         $isBasic = in_array($choice, ['a','basic','module_a','basic_module'], true);
-
-        return $isBasic ? 40 : 80; // جامع = 80
+        return $isBasic ? 40 : 80;
     }
 
     public function getIndexProperty(): int
@@ -254,46 +230,33 @@ class Wizard extends Component
 
     public function getProgressProperty(): int
     {
-
-        return $this->total > 0 ? intval(($this->index / $this->total) * 100) : 0;
+        $total = $this->total;
+        return $total > 0 ? intval(($this->index / $total) * 100) : 0;
     }
-
 
     #[On('wizard.answer-updated')]
     public function onAnswerUpdated(string $key, mixed $value): void
     {
-
         if ($key === 'b1.q1') {
-            $this->moduleChoice = $value;
-
+            $this->moduleChoice = is_array($value) ? ($value['choice'] ?? null) : (string)$value;
         }
         if ($key === 'b1.q2') {
-            $this->companyType = $value;
+            $this->companyType = is_array($value) ? ($value['choice'] ?? null) : (string)$value;
         }
-        $this->recalcTotal();
     }
 
-
-
-
-    public function render()
-    {
-        return view('livewire.user-dashboard.wizard.wizard', [
-            'moduleChoice' => $this->moduleChoice,
-            'companyType' => $this->companyType,
-        ]);
-    }
-
-
+    /**
+     * MVP-hardcoded validation + normalization
+     */
     protected function rulesForCurrent(): array
     {
         $key  = $this->currentKey;
         $q    = $this->currentQuestion;
-        $r    = $q['rules'] ?? [];
         $type = $q['type'] ?? null;
 
-
+        // Repeatable group (مثل قبل)
         if ($type === 'repeatable-group') {
+            $r = $q['rules'] ?? [];
             $rules = [];
             $container = [];
             if (!empty($r['array']))    $container[] = 'array';
@@ -309,21 +272,12 @@ class Wizard extends Component
             return $rules;
         }
 
-        // --- Q4: radio-with-other ---
+        // radio-with-other (ساختار {choice, other_text})
         if ($type === 'radio-with-other') {
-            // مهاجرت نرم: اگر مقدار قدیمی string بود، به آبجکت تبدیلش کن
-            $val = data_get($this->answers, $key);
-            if (is_string($val)) {
-                $this->answers[$key] = ['choice' => $val, 'other_text' => null];
-            }
-
-            // rules از DB، مثال:
-            // { "choice":["required","in:private_ltd,sole,partnership,cooperative,other"],
-            //   "other":["nullable","string","min:3","max:200","required_if:choice,other"] }
+            $this->normalizeRadioWithOther($key);
+            $r = $q['rules'] ?? [];
             $choiceRules = $this->normalizeRuleSpec($r['choice'] ?? ['required','string']);
             $otherRules  = $this->normalizeRuleSpec($r['other']  ?? ['nullable','string','min:3','max:200']);
-
-            // بازنویسی Ruleهای شرطی تا مسیر کامل فیلد مرجع را داشته باشند
             $otherRules  = $this->rewriteConditionalRules($otherRules, base: "answers.$key.");
 
             return [
@@ -332,40 +286,92 @@ class Wizard extends Component
             ];
         }
 
-        // --- بقیه‌ی انواع جنریک ---
+        // radio-cards (MVP rules — hardcoded per key)
+        if ($type === 'radio-cards') {
+            $this->normalizeRadioCards($key);
+
+            // Q1
+            if ($key === 'b1.q1') {
+                return [
+                    "answers.$key.choice" => ['required', Rule::in(['A','B'])],
+                    "answers.$key.desc"   => ['nullable','string','max:500'],
+                ];
+            }
+
+            // Q2
+            if ($key === 'b1.q2') {
+                return [
+                    "answers.$key.choice" => ['required', Rule::in(['individual','consolidated'])],
+                    "answers.$key.desc"   => ['nullable','string','max:500'],
+                ];
+            }
+
+            // Q5
+            if ($key === 'b1.q5') {
+                return [
+                    "answers.$key.choice" => ['required', Rule::in(['yes','no'])],
+                    "answers.$key.desc"   => ['nullable','string','max:500','required_if:answers.'.$key.'.choice,yes'],
+                ];
+            }
+
+            // سایر radio-cards های احتمالی
+            return [
+                "answers.$key.choice" => ['required'],
+                "answers.$key.desc"   => ['nullable','string','max:500'],
+            ];
+        }
+
+        // Generic single-value fallback (مثل قبل)
+        $r = $q['rules'] ?? [];
         $line = ['bail'];
-        $rr   = $r;
+        if (!empty($r['required'])) $line[] = 'required';
+        if (!empty($r['in']) && is_array($r['in'])) $line[] = Rule::in($r['in']);
 
-        if (!empty($rr['required'])) $line[] = 'required';
-        if (!empty($rr['in']) && is_array($rr['in'])) $line[] = Rule::in($rr['in']);
-
-        $t = $type;
-        if ($t === 'number') {
+        if (($type ?? null) === 'number') {
             $line[] = 'numeric';
-            if (isset($rr['min'])) $line[] = 'min:'.$rr['min'];
-            if (isset($rr['max'])) $line[] = 'max:'.$rr['max'];
+            if (isset($r['min'])) $line[] = 'min:'.$r['min'];
+            if (isset($r['max'])) $line[] = 'max:'.$r['max'];
         } else {
             $line[] = 'string';
-            if (isset($rr['min'])) $line[] = 'min:'.$rr['min'];
-            if (isset($rr['max'])) $line[] = 'max:'.$rr['max'];
+            if (isset($r['min'])) $line[] = 'min:'.$r['min'];
+            if (isset($r['max'])) $line[] = 'max:'.$r['max'];
         }
 
         if (count($line) === 1) $line[] = 'nullable';
         return ["answers.$key" => $line];
     }
 
+    /** نرمال‌سازی برای radio-with-other */
+    protected function normalizeRadioWithOther(string $key): void
+    {
+        $val = data_get($this->answers, $key);
+        if (is_string($val)) {
+            data_set($this->answers, $key, ['choice' => $val, 'other_text' => null]);
+        } elseif (is_array($val)) {
+            data_set($this->answers, $key, array_merge(['choice' => null, 'other_text' => null], $val));
+        } else {
+            data_set($this->answers, $key, ['choice' => null, 'other_text' => null]);
+        }
+    }
 
-    /**
-     * spec: "required|string|max:120" یا ["required","string","max:120"] یا {"required":true,"max":120,"in":[...]}
-     */
+    /** نرمال‌سازی برای radio-cards */
+    protected function normalizeRadioCards(string $key): void
+    {
+        $val = data_get($this->answers, $key);
+        if (is_string($val)) {
+            data_set($this->answers, $key, ['choice' => $val, 'desc' => null]);
+        } elseif (is_array($val)) {
+            data_set($this->answers, $key, array_merge(['choice' => null, 'desc' => null], $val));
+        } else {
+            data_set($this->answers, $key, ['choice' => null, 'desc' => null]);
+        }
+    }
+
+    /** spec normalizer (بدون تغییر اساسی نسبت به قبل) */
     protected function normalizeRuleSpec(mixed $spec, ?string $baseAttr = null): array
     {
-        if (is_string($spec)) {
-            return array_values(array_filter(explode('|', $spec)));
-        }
+        if (is_string($spec)) return array_values(array_filter(explode('|', $spec)));
         if (!is_array($spec)) return ['nullable'];
-
-        // لیست → همان را بده
         if (array_is_list($spec)) return $spec ?: ['nullable'];
 
         $out = [];
@@ -377,41 +383,13 @@ class Wizard extends Component
                 case 'in':
                     $out[] = Rule::in(is_array($v) ? $v : explode(',', (string)$v));
                     break;
-
                 case 'not_in':
                     $out[] = Rule::notIn(is_array($v) ? $v : explode(',', (string)$v));
                     break;
-
                 case 'regex':
                     $pattern = is_string($v) ? $v : (is_array($v) ? reset($v) : '');
-                    if ($pattern !== '') {
-                        $out[] = str_starts_with($pattern, 'regex:') ? $pattern : 'regex:'.$pattern;
-                    }
+                    if ($pattern !== '') $out[] = str_starts_with($pattern, 'regex:') ? $pattern : 'regex:'.$pattern;
                     break;
-
-                case 'required_if':
-                case 'required_unless':
-                case 'prohibited_if':
-                case 'prohibited_unless':
-                case 'same':
-                case 'different':
-                    // پشتیبانی از هر دو فرم:
-                    // 1) رشته مستقیم: "required_if:answers.b1.q4.choice,other"
-                    // 2) آبجکت: {"field":"choice","values":["other"]}
-                    if (is_string($v)) {
-                        $out[] = str_contains($v, ':') ? $v : ($k.':'.$v);
-                    } elseif (is_array($v)) {
-                        $field = $v['field'] ?? null;
-                        $values = $v['values'] ?? null;
-                        if ($field) {
-                            // اگر baseAttr داده شده بود، فیلد را کامل کن
-                            $fullField = $baseAttr ? ($baseAttr.'.'.$field) : $field;
-                            $vals = is_array($values) ? implode(',', $values) : (string)$values;
-                            $out[] = $k . ':' . $fullField . ($vals !== '' ? ','.$vals : '');
-                        }
-                    }
-                    break;
-
                 default:
                     if (is_array($v)) $out[] = "$k:".implode(',', $v);
                     else $out[] = "$k:$v";
@@ -420,15 +398,9 @@ class Wizard extends Component
         return $out ?: ['nullable'];
     }
 
-
-
-    /**
-     * قواعد شرطی مانند required_if:choice,other را به
-     * required_if:answers.{key}.choice,other بازنویسی می‌کند.
-     */
+    /** بازنویسی مسیرهای شرطی (required_if و …) به مسیر کامل */
     protected function rewriteConditionalRules(array $rules, string $base): array
     {
-        // لیست کلیدواژه‌های شرطی که پارامتر اولشان «نام فیلد» است
         $condKeys = [
             'required_if','required_unless','prohibited_if','prohibited_unless',
             'present_if','present_unless','exclude_if','exclude_unless'
@@ -440,9 +412,7 @@ class Wizard extends Component
             foreach ($condKeys as $kw) {
                 $prefix = $kw.':';
                 if (str_starts_with($rule, $prefix)) {
-                    // نمونه: required_if:choice,other
                     $payload = substr($rule, strlen($prefix));
-                    // پارامتر اول اسم فیلد است؛ باید base به ابتدای آن اضافه شود
                     $parts = explode(',', $payload, 2);
                     $field = $parts[0] ?? '';
                     $rest  = $parts[1] ?? '';
@@ -456,28 +426,32 @@ class Wizard extends Component
         }, $rules);
     }
 
-
-
     protected function persistCurrentAnswer(): void
     {
         $key   = $this->currentKey;
         $value = data_get($this->answers, $key);
 
-        \App\Models\Answer::updateOrCreate(
+        Answer::updateOrCreate(
             ['report_id' => $this->report->id, 'question_key' => $key],
             ['value' => $value]
         );
 
-
+        // Sync derived fields
         if ($key === 'b1.q1') {
-            $this->moduleChoice = $value;
-        }
-        if ($key === 'b1.q2') {
-            $this->companyType = $value;
+            $this->moduleChoice = is_array($value) ? ($value['choice'] ?? null) : (string)$value;
+            if ($this->moduleChoice) {
+                $this->report->update(['module_choice' => $this->moduleChoice]);
+            }
         }
 
+        if ($key === 'b1.q2') {
+            $this->companyType = is_array($value) ? ($value['choice'] ?? null) : (string)$value;
+        }
     }
 
+    /**
+     * @throws Throwable
+     */
     #[On('wizard.skip')]
     public function handleSkip(string $key, string $type, ?string $note = null): void
     {
@@ -501,8 +475,6 @@ class Wizard extends Component
         $this->success(__('Question skipped.'));
     }
 
-
-
     protected function keys(): array
     {
         return array_keys($this->questions);
@@ -522,9 +494,11 @@ class Wizard extends Component
         return $keys[max($i - 1, 0)] ?? $key;
     }
 
-
-
-
-
-
+    public function render()
+    {
+        return view('livewire.user-dashboard.wizard.wizard', [
+            'moduleChoice' => $this->moduleChoice,
+            'companyType'  => $this->companyType,
+        ]);
+    }
 }

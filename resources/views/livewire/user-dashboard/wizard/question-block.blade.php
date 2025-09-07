@@ -6,11 +6,17 @@
     @if(!$q)
         <div class="alert alert-warning mt-6">{{__("No question loaded.")}}</div>
     @else
+
         {{-- Header --}}
-        <div  class="mt-6 flex items-start justify-between gap-3">
+        <div class="mt-6 flex items-start justify-between gap-3">
             <div>
                 <p class="text-sm text-base-content/70">
-                    Question {{ $q['number'] ?? '-' }} / {{ $total ?? '-' }}
+                    @if($q['key'] =='b1.q1')
+
+                    @else
+                        {{__('ui.question')}} {{ $q['number'] ?? '-' }} / {{ $this->total ?? '-' }}
+                    @endif
+
                 </p>
                 <h1 class="text-2xl md:text-3xl font-extrabold leading-tight mt-1">
                     {{ $q['title'] ?? 'Untitled question' }}
@@ -27,9 +33,9 @@
             'q'      => $q,
             'value'  => $value,
             'error' => $error ?? null,
-
+            //'reportId' => $report->id,
         ])
-          @endif
+    @endif
 
 
 </div>

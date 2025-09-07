@@ -54,10 +54,6 @@ class RepeatableGroup extends Component
     public function updatedShowMap($isOpen): void
     {
 
-        if ($isOpen) {
-
-            $this->dispatch('leaflet:init', id: 'map-container');
-        }
     }
 
 
@@ -73,8 +69,6 @@ class RepeatableGroup extends Component
 
     public function mount(array $q, ?array $value = null, ?string $companyType = null): void
     {
-
-
 
 
         $this->q = $q;
