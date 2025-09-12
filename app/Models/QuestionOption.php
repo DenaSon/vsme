@@ -17,6 +17,24 @@ class QuestionOption extends Model
         'sort', 'is_active',
     ];
 
+
+    public function getTranslatedChoicesAttribute(): array
+    {
+        $locale = app()->getLocale();
+        $choices = data_get($this->extra, 'choices', []);
+        $choices = is_array($choices) ? $choices : [];
+
+        return array_map(function ($c) use ($locale) {
+            $label = $c['label'] ?? '';
+            if (is_array($label)) {
+                $label = $label[$locale] ?? $label['en'] ?? (array_values($label)[0] ?? '');
+            }
+            $c['label'] = (string) $label;
+            return $c;
+        }, $choices);
+    }
+
+
     public $translatable = ['label', 'description'];
 
     protected $casts = [

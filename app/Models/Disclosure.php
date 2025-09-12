@@ -27,19 +27,19 @@ class Disclosure extends Model
     ];
 
     /** @return BelongsTo */
-    public function questionnaire()
+    public function questionnaire(): BelongsTo
     {
         return $this->belongsTo(Questionnaire::class);
     }
 
     /** @return BelongsTo */
-    public function module()
+    public function module(): BelongsTo
     {
         return $this->belongsTo(Module::class);
     }
 
     /** @return HasMany */
-    public function questions()
+    public function questions(): HasMany
     {
         return $this->hasMany(Question::class);
     }

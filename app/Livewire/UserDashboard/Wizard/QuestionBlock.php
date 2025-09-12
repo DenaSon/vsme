@@ -11,9 +11,9 @@ class QuestionBlock extends Component
 {
 
     public ?string $moduleChoice = null;
-    public ?string $companyType  = null;
+    public ?string $companyType = null;
 
-
+    public $index;
 
     use Toast;
 
@@ -26,18 +26,25 @@ class QuestionBlock extends Component
     #[Modelable]
     public mixed $value = null;
 
-    public function mount(array $q, int $total = 0, $value = null, ?string $moduleChoice = null, ?string $companyType = null): void
+    public ?int $reportId = null;
+
+
+    public function mount(array $q, int $total = 0, $value = null, ?string $moduleChoice = null, ?string $companyType = null, ?int $reportId = null): void
 
     {
 
-        $this->q = $q;
+
         $this->total = $total;
         $this->value = $value;
 
+        $this->q = $q;
+
+        $this->reportId = $reportId;
+
         $this->moduleChoice = $moduleChoice;
         $this->companyType = $companyType;
-
         $this->normalizeValueForType();
+
 
     }
 
@@ -70,9 +77,32 @@ class QuestionBlock extends Component
                 $this->value = ['choice' => null, 'other_text' => null];
             }
         }
+
+
+        if (($this->q['type'] ?? null) === 'multi-input') {
+
+            $fieldKeys = collect($this->q['options'] ?? [])
+                ->filter(fn($o) => ($o['kind'] ?? 'field') === 'field')
+                ->pluck('key')
+                ->filter()
+                ->values()
+                ->all();
+
+
+            $current = is_array($this->value) ? $this->value : [];
+
+
+            foreach ($fieldKeys as $fk) {
+                if (!array_key_exists($fk, $current)) {
+                    $current[$fk] = null;
+                }
+            }
+
+            $this->value = $current;
+        }
+
+
     }
-
-
 
 
     #[On('wizard.prefill')]
@@ -89,10 +119,6 @@ class QuestionBlock extends Component
         $this->dispatch('wizard.answer-updated', key: $this->q['key'] ?? '', value: $this->value);
     }
 
-    public function render()
-    {
-        return view('livewire.user-dashboard.wizard.question-block');
-    }
 
     protected function firstUnansweredKey(): ?string
     {
@@ -102,6 +128,11 @@ class QuestionBlock extends Component
             }
         }
         return null;
+    }
+
+    public function render()
+    {
+        return view('livewire.user-dashboard.wizard.question-block')->with(['reportId' => $this->reportId]);
     }
 
 

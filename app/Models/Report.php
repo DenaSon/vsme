@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Report extends Model
 {
@@ -33,6 +34,8 @@ class Report extends Model
         'progress'     => 'integer',
         'submitted_at' => 'datetime',
         'meta'         => 'array',
+        'period_start' => 'date',
+        'period_end'   => 'date',
     ];
 
 
@@ -84,5 +87,48 @@ class Report extends Model
     {
         return $query->where('year', $year);
     }
+
+
+
+    public function answerFor(string $questionKey): ?Answer
+    {
+        return $this->relationLoaded('answers')
+            ? $this->answers->firstWhere('question_key', $questionKey)
+            : $this->answers()->where('question_key', $questionKey)->first();
+    }
+
+    public function answerValue(string $questionKey, $default = null)
+    {
+        return $this->answerFor($questionKey)?->value ?? $default;
+    }
+
+    public function answerByRole(string $role, $default = null)
+    {
+        $q = \App\Models\Question::query()
+            ->where('meta->role', $role)
+            ->first();
+
+        return $q
+            ? $this->answerValue($q->key, $default)
+            : $default;
+    }
+
+    public static function normalizeRowsWithUid($rows): array
+    {
+        if (!is_array($rows)) return [];
+        return array_values(array_map(function ($row) {
+            $row = is_array($row) ? $row : [];
+            if (empty($row['_uid'])) $row['_uid'] = (string) Str::ulid();
+            return $row;
+        }, $rows));
+    }
+
+    public function rowsByRole(string $role): array
+    {
+        return self::normalizeRowsWithUid($this->answerByRole($role, []));
+    }
+
+
+
 }
 

@@ -2,6 +2,7 @@
     @php
         $ho = $q['help_official'] ?? null;
         $hf = $q['help_friendly'] ?? null;
+
     @endphp
     @if(!$q)
         <div class="alert alert-warning mt-6">{{__("No question loaded.")}}</div>
@@ -14,7 +15,7 @@
                     @if($q['key'] =='b1.q1')
 
                     @else
-                        {{__('ui.question')}} {{ $q['number'] ?? '-' }} / {{ $this->total ?? '-' }}
+                        {{__('ui.question')}} {{ $index ?? '-' }} / {{ $total ?? '-' }}
                     @endif
 
                 </p>
@@ -28,13 +29,24 @@
             </button>
         </div>
 
+        @if(($q['type'] ?? null) === 'repeatable-group')
+            <livewire:user-dashboard.wizard.modules.repeatable-group
+                :q="$q"
+                :company-type="$companyType"
+                :report-id="$reportId"      {{-- خیلی مهم: kebab-case --}}
+                wire:model="value"
+                wire:key="rg-{{ $q['key'] }}"
+            />
+        @else
+            @includeIf("livewire.user-dashboard.wizard.partials.inputs.{$q['type']}", [
+                'q'        => $q,
+                'value'    => $value,
+                'error'    => $error ?? null,
+                'reportId' => $reportId,
+            ])
+        @endif
 
-        @includeIf("livewire.user-dashboard.wizard.partials.inputs.{$q['type']}", [
-            'q'      => $q,
-            'value'  => $value,
-            'error' => $error ?? null,
-            //'reportId' => $report->id,
-        ])
+
     @endif
 
 

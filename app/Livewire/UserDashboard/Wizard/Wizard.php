@@ -32,6 +32,8 @@ class Wizard extends Component
     public ?string $moduleChoice = null;   // 'A' | 'B'
     public ?string $companyType  = null;   // 'individual' | 'consolidated'
 
+    public ?int $reportId = null;
+
 
 
     public function mount(): void
@@ -74,22 +76,23 @@ class Wizard extends Component
                     'help_friendly' => $question->getTranslation('help_friendly', $loc, true),
                     'meta'          => $question->meta ?? [],
                 ];
+
                 $this->questions[$question->key] = $arr;
             }
+
+
         }
 
         $firstKey = array_key_first($this->questions) ?? 'b1.q1';
 
 
-
-
        $this->loadReport($q->id,$firstKey);
 
 
-
-
         // Load saved answers
-        $existing = Answer::where('report_id', $this->report->id)->pluck('value', 'question_key');
+        $existing = Answer::where('report_id', $this->report->id)
+            ->pluck('value', 'question_key');
+
         foreach ($existing as $k => $v) {
             data_set($this->answers, $k, $v);
         }
@@ -107,6 +110,8 @@ class Wizard extends Component
         $this->companyType  = data_get($this->answers, 'b1.q2.choice')    // individual/consolidated
             ?? null;
 
+
+
         // Current key
         $savedKey = $this->report->current_key;
         if (!$savedKey || !array_key_exists($savedKey, $this->questions)) {
@@ -114,6 +119,10 @@ class Wizard extends Component
             $this->report->update(['current_key' => $savedKey]);
         }
         $this->currentKey = $savedKey;
+
+        $this->reportId = $this->report->id;
+
+
     }
 
     private function loadReport(int|string $questionnaireId, string $firstKey): void
@@ -134,7 +143,6 @@ class Wizard extends Component
                 ]
             );
 
-            // مطمئن شو که یک instance از Report داریم
             if (!$this->report instanceof Report) {
                 throw new \RuntimeException("Failed to load or create report.");
             }
@@ -208,12 +216,12 @@ class Wizard extends Component
 
     public function getCurrentProperty(): int
     {
-        return $this->questions[$this->currentKey]['number'] ?? 1;
+         return $this->index ?? 1;
     }
 
     public function getVisibleProperty(): int
     {
-        return 12;
+        return 80;
     }
 
     public function getTotalProperty(): int
@@ -225,7 +233,9 @@ class Wizard extends Component
 
     public function getIndexProperty(): int
     {
-        return $this->questions[$this->currentKey]['number'] ?? 1;
+        $keys = array_keys($this->questions);
+        $i = array_search($this->currentKey, $keys, true);
+        return ($i === false) ? 1 : ($i + 1); // 1-based
     }
 
     public function getProgressProperty(): int
@@ -233,6 +243,7 @@ class Wizard extends Component
         $total = $this->total;
         return $total > 0 ? intval(($this->index / $total) * 100) : 0;
     }
+
 
     #[On('wizard.answer-updated')]
     public function onAnswerUpdated(string $key, mixed $value): void
@@ -245,6 +256,8 @@ class Wizard extends Component
         }
     }
 
+
+
     /**
      * MVP-hardcoded validation + normalization
      */
@@ -254,7 +267,7 @@ class Wizard extends Component
         $q    = $this->currentQuestion;
         $type = $q['type'] ?? null;
 
-        // Repeatable group (مثل قبل)
+
         if ($type === 'repeatable-group') {
             $r = $q['rules'] ?? [];
             $rules = [];
@@ -269,8 +282,66 @@ class Wizard extends Component
             foreach (($r['item_rules'] ?? []) as $field => $spec) {
                 $rules["answers.$key.*.$field"] = $this->normalizeRuleSpec($spec);
             }
+
+            // ← اگر این سؤال فیلد site_uid دارد، distinct را اضافه کن
+            $hasSiteUid = collect($q['options'] ?? [])
+                ->where('kind', 'field')
+                ->pluck('key')
+                ->contains('site_uid');
+
+            if ($hasSiteUid) {
+                $rules["answers.$key.*.site_uid"][] = 'distinct';
+            }
+
             return $rules;
         }
+
+
+        if ($type === 'multi-input') {
+            $r = $q['rules'] ?? [];
+
+            // کلیدهای فیلدها را از options بگیر
+            $fields = collect($q['options'] ?? [])
+                ->where('kind', 'field')
+                ->pluck('key')
+                ->values()
+                ->all();
+
+
+            $current = (array) (data_get($this->answers, $key) ?? []);
+            $normalized = [];
+            foreach ($fields as $f) {
+                $normalized[$f] = array_key_exists($f, $current) ? $current[$f] : null;
+            }
+            data_set($this->answers, $key, $normalized);
+
+
+            $container = [];
+            if (!empty($r['array']))    $container[] = 'array';
+            if (!empty($r['required'])) $container[] = 'required';
+            if (isset($r['min']))       $container[] = 'min:'.$r['min'];
+            if (isset($r['max']))       $container[] = 'max:'.$r['max'];
+            if (!$container) $container = ['array','required'];
+
+            $rules = ["answers.$key" => $container];
+
+            // قوانین هر فیلد
+            foreach (($r['item_rules'] ?? []) as $field => $spec) {
+                $rules["answers.$key.$field"] = $this->normalizeRuleSpec($spec);
+            }
+
+
+            if (empty($r['item_rules'])) {
+                foreach ($fields as $f) {
+                    $rules["answers.$key.$f"] = ['nullable','numeric','min:0'];
+                }
+            }
+
+            return $rules;
+        }
+
+
+
 
         // radio-with-other (ساختار {choice, other_text})
         if ($type === 'radio-with-other') {
@@ -367,6 +438,7 @@ class Wizard extends Component
         }
     }
 
+
     /** spec normalizer (بدون تغییر اساسی نسبت به قبل) */
     protected function normalizeRuleSpec(mixed $spec, ?string $baseAttr = null): array
     {
@@ -425,6 +497,8 @@ class Wizard extends Component
             return $rule;
         }, $rules);
     }
+
+
 
     protected function persistCurrentAnswer(): void
     {
