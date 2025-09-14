@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('settings', function (Blueprint $table): void {
             $table->id();
 
-            $table->string('group');
-            $table->string('name');
+            $table->string('group',191);
+            $table->string('name',191);
             $table->boolean('locked')->default(false);
             $table->json('payload');
 
