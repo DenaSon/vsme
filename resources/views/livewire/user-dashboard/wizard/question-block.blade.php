@@ -13,23 +13,27 @@
             <div>
                 <p class="text-sm text-base-content/70">
                     @if($q['key'] =='b1.q1')
-
                     @else
                         {{__('ui.question')}} {{ $index ?? '-' }} / {{ $total ?? '-' }}
                     @endif
-
                 </p>
-                <h1 class="text-2xl md:text-3xl font-extrabold leading-tight mt-1">
+
+                <h1 id="questionTitle" class="text-2xl md:text-3xl font-extrabold leading-tight mt-1">
                     {{ $q['title'] ?? 'Untitled question' }}
                 </h1>
             </div>
 
-            <button class="btn btn-ghost btn-circle" aria-label="Read out loud">
+
+            <button id="readButton" class="btn btn-ghost btn-circle" aria-label="Read out loud">
                 <x-heroicon-o-speaker-wave class="w-5 h-5"/>
             </button>
         </div>
 
-        @if(($q['type'] ?? null) === 'repeatable-group')
+
+
+
+
+    @if(($q['type'] ?? null) === 'repeatable-group')
             <livewire:user-dashboard.wizard.modules.repeatable-group
                 :q="$q"
                 :company-type="$companyType"
@@ -51,3 +55,6 @@
 
 
 </div>
+
+
+

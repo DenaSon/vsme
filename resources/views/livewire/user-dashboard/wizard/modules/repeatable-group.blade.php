@@ -163,7 +163,7 @@
             @endforeach
 
 
-            @if($companyType == 'consolidated')
+            @if($this->allowsMultipleRows())
                 <div class="md:col-span-2 flex justify-end">
                     <x-button
                         label="Remove"
@@ -174,6 +174,7 @@
                     />
                 </div>
             @endif
+
         </div>
     @empty
         <div role="alert" class="alert mt-3 mb-3">
@@ -182,7 +183,7 @@
         </div>
     @endforelse
 
-    @if($companyType == 'consolidated')
+        @if($this->allowsMultipleRows())
         <x-button
             label="{{ __('Add row') }}"
             icon="o-plus"
@@ -190,7 +191,8 @@
             wire:click.debounce.200ms="addRow"
             spinner
         />
-    @endif
+        @endif
+
 
     @include('livewire.user-dashboard.wizard.modules.map-modal')
 </div>

@@ -1,4 +1,5 @@
 {{-- Wizard Layout --}}
+
 <div class="wizard grid grid-cols-[3.5rem_1fr] gap-6">
 
     @include('livewire.user-dashboard.wizard.partials.steps-rail', [

@@ -224,7 +224,7 @@ class RepeatableGroup extends Component
 
     protected function maxRows(): int
     {
-        return ($this->companyType === 'individual') ? 1 : PHP_INT_MAX;
+        return $this->allowsMultipleRows() ? PHP_INT_MAX : 1;
     }
 
     protected function enforceMaxRows(): void
@@ -239,8 +239,9 @@ class RepeatableGroup extends Component
     public function addRow(): void
     {
         if (!is_array($this->value)) $this->value = [];
-        if ($this->companyType === 'individual' && count($this->value) > 0) {
-            $this->info('Cannot add multiple', 'Single-company selection does not allow multiple rows.');
+
+        if (!$this->allowsMultipleRows() && count($this->value) > 0) {
+            $this->info(__('Cannot add multiple'), __('This question allows only one row.'));
             return;
         }
 
@@ -249,15 +250,36 @@ class RepeatableGroup extends Component
 
     public function removeRow($key): void
     {
-        if ($this->companyType === 'individual') return;
+        if (!$this->allowsMultipleRows()) {
+            // اگر این سؤال فقط تک‌ردیفی است، نباید Row حذف شود
+            return;
+        }
 
         $rows = $this->value ?? [];
         if (is_numeric($key) && array_key_exists($key, $rows)) {
             unset($rows[$key]);
         } else {
-            $rows = array_values(array_filter($rows, fn($r) => ($r['_uid'] ?? null) !== $key));
+            $rows = array_values(array_filter(
+                $rows,
+                fn($r) => ($r['_uid'] ?? null) !== $key
+            ));
         }
+
         $this->value = array_values($rows);
+    }
+
+
+    protected function allowsMultipleRows(): bool
+    {
+        $key = data_get($this->q, 'key');
+
+
+        if ($key === 'b1.q3') {
+            return $this->companyType !== 'individual';
+        }
+
+
+        return true;
     }
 
     public function render()

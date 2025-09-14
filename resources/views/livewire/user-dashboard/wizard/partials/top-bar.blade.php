@@ -5,6 +5,9 @@
             <li><a href="#" class="hover:text-gray-800 transition-colors">{{ __('ui.dashboard') }}</a></li>
             <li><a href="#" class="hover:text-gray-800 transition-colors">{{ __('ui.survey') }}</a></li>
             <li class="text-gray-400 font-medium">{{ __('ui.vsme_survey') }}</li>
+            <li class="text-gray-400 font-thin">
+                {{ $this->currentDisclosureTitle  }}
+            </li>
         </ul>
     </nav>
 
