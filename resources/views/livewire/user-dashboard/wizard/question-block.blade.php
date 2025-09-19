@@ -33,11 +33,12 @@
 
 
 
-    @if(($q['type'] ?? null) === 'repeatable-group')
+
+        @if(($q['type'] ?? null) === 'repeatable-group')
             <livewire:user-dashboard.wizard.modules.repeatable-group
                 :q="$q"
                 :company-type="$companyType"
-                :report-id="$reportId"      {{-- خیلی مهم: kebab-case --}}
+                :report-id="$reportId"
                 wire:model="value"
                 wire:key="rg-{{ $q['key'] }}"
             />
@@ -49,7 +50,6 @@
                 'reportId' => $reportId,
             ])
         @endif
-
 
     @endif
 

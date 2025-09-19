@@ -37,12 +37,10 @@ class RepeatableGroup extends Component
     public array $siteOptions = [];
 
 
-
-
-
-
     public function mount(array $q, ?array $value = null, ?string $companyType = null, array $sourceSites = [], ?int $reportId = null): void
     {
+
+
 
         $this->reportId = $reportId;
 
@@ -52,7 +50,6 @@ class RepeatableGroup extends Component
         if ($siteSource && $this->reportId) {
 
 
-
             $report = Report::with('answers')->find($reportId);
             if ($report) {
 
@@ -60,7 +57,7 @@ class RepeatableGroup extends Component
 
                 if (empty($rows)) {
 
-                    $rows = $report->answerValue(data_get($siteSource, 'from_question', 'b1.q3'), []);
+                    $rows = $report->answerValue(data_get($siteSource, 'from_question', 'b1.q9'), []);
                 }
 
 
@@ -69,7 +66,7 @@ class RepeatableGroup extends Component
                     $valKey = data_get($siteSource, 'value_key', '_uid');
                     $tpl = data_get($siteSource, 'label_tpl', '{{name}}');
                     $label = str($tpl)->replace(['{{name}}', '{{city}}', '{{country}}'], [
-                        data_get($r, 'name', '-'),
+                        data_get($r, 'site_name', '-'),
                         data_get($r, 'city', '-'),
                         data_get($r, 'country', '-'),
                     ])->value();
@@ -135,7 +132,6 @@ class RepeatableGroup extends Component
         }
 
 
-
         if (in_array('site_uid', $this->fields, true)) {
             $this->siteOptions = collect($sourceSites)->map(function ($r) {
                 $uid = $r['_uid'] ?? null;
@@ -156,8 +152,6 @@ class RepeatableGroup extends Component
 
 
     }
-
-
 
 
     public function openMap(int $index): void
@@ -207,9 +201,6 @@ class RepeatableGroup extends Component
         foreach ($this->fields as $k) $row[$k] = '';
         return $row;
     }
-
-
-
 
 
     public function hydrate(): void

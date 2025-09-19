@@ -150,13 +150,14 @@
                         </div>
                     @endif
 
-                    {{-- hint اختیاری --}}
+
                     @if($hint)
                         <p class="text-xs text-base-content/70 mt-0.5">{{ $hint }}</p>
                     @endif
 
                     {{-- error نمایش خطا --}}
                     @error("value.$i.$fkey")
+
                     <span class="text-xs text-error mt-0.5">{{ $message }}</span>
                     @enderror
                 </div>

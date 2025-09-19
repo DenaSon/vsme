@@ -3,7 +3,6 @@
 namespace App\Livewire\UserDashboard\Wizard;
 
 use App\Models\Answer;
-use App\Models\Disclosure;
 use App\Models\Questionnaire;
 use App\Models\Report;
 use Illuminate\Support\Facades\DB;
@@ -212,6 +211,7 @@ class Wizard extends Component
 
     public function next(): void
     {
+
         try {
             $this->validate(
                 $this->rulesForCurrent(),
@@ -232,9 +232,6 @@ class Wizard extends Component
                         'All requirements for this module have been fully met.'
                     );
 
-
-
-
                     return;
                 }
 
@@ -244,8 +241,18 @@ class Wizard extends Component
             });
 
         } catch (ValidationException $e) {
-            $this->warning(__('Please select an option.'));
+
+            $errors = $e->validator->errors();
+
+            $msg =
+                $errors->first("answers.$this->currentKey") ?:
+                    $errors->first("answers.$this->currentKey.*") ?:
+                        $errors->first(); // fallback
+
+            $this->warning($msg ?: __('Validation error.'));
             throw $e;
+
+
         } catch (Throwable $e) {
             $this->warning('System Error','Try again later.');
             Log::error($e);
@@ -270,7 +277,7 @@ class Wizard extends Component
 
     protected function visibleKeys(): array
     {
-        // انتخاب ماژول‌های مجاز بر اساس انتخاب کاربر (A = فقط basic، B = basic + comprehensive)
+
         $choice = strtolower((string)($this->moduleChoice ?? $this->report?->module_choice ?? 'a'));
         $allowedModules = in_array($choice, ['a','basic','module_a','basic_module'], true)
             ? ['basic']
@@ -280,15 +287,15 @@ class Wizard extends Component
         foreach ($this->questions as $key => $q) {
             $did = $this->q2d[$key] ?? null;
 
-            // فال‌بک مطمئن: اگر module ست نبود، 'basic' فرض کن
+
             $moduleCode = $did ? ($this->disclosureMap[$did]['module'] ?? 'basic') : 'basic';
 
-            // اگر ماژول این سؤال در مجموعه مجاز نیست، ردش کن
+
             if (!in_array($moduleCode, $allowedModules, true)) {
                 continue;
             }
 
-            // اگر شرط‌های visible_if برقرار نیست، ردش کن
+
             if (!$this->isQuestionVisible($key)) {
                 continue;
             }
@@ -339,14 +346,14 @@ class Wizard extends Component
         if ($key === 'b1.q1') {
             $this->moduleChoice = is_array($value) ? ($value['choice'] ?? null) : (string)$value;
 
-            // اگر currentKey از مسیر جدید خارج شد، بپر روی اولین کلید مجاز
+
             $vkeys = $this->visibleKeys();
             if (!in_array($this->currentKey, $vkeys, true)) {
                 $this->currentKey = $vkeys[0] ?? $this->currentKey;
                 $this->report?->update(['current_key' => $this->currentKey]);
             }
 
-            // اگر قبلاً کامل شده بودیم ولی مسیر تغییر کرد، دوباره اجازه حرکت بده
+
             $this->isCompleted = false;
         }
 
@@ -396,7 +403,7 @@ class Wizard extends Component
                 $rules["answers.$key.*.site_uid"][] = 'distinct';
             }
 
-            // برای B8.Q4: کشورها نباید تکراری باشند
+
             $hasCountry = collect($q['options'] ?? [])
                 ->where('kind', 'field')
                 ->pluck('key')
@@ -408,6 +415,9 @@ class Wizard extends Component
 
             return $rules;
         }
+
+
+
 
         if ($type === 'multi-input') {
             $r = $q['rules'] ?? [];
@@ -659,9 +669,6 @@ class Wizard extends Component
 
 
 
-
-
-
     protected function persistCurrentAnswer(): void
     {
         $key   = $this->currentKey;
@@ -671,6 +678,10 @@ class Wizard extends Component
             ['report_id' => $this->report->id, 'question_key' => $key],
             ['value' => $value]
         );
+
+        if ($key === 'b1.q2') {
+            $this->handleGateNo('b1.q3', $value, 'no');
+        }
 
         if ($key === 'b5.q1') {
             $this->handleGateNo('b5.q1', $value, 'no');
@@ -700,6 +711,7 @@ class Wizard extends Component
     protected function getHiddenDependents(string $gateKey): array
     {
         return match ($gateKey) {
+
             'b5.q1' => ['b5.q2','b5.q3'],
             'b7.q4' => ['b7.q5'],
             'b8.q3' => ['b8.q4'],

@@ -155,6 +155,8 @@ class VsmeSeeder extends Seeder
         $this->seedB1Q7($b1);
         $this->seedB1Q8($b1);
 
+        $this->seedB1Q9($b1);
+
 
         // ---------- B2 (4 questions: practices, policies, initiatives, targets)
         $this->seedB2Q1_Practices($b2);
@@ -259,130 +261,148 @@ class VsmeSeeder extends Seeder
         );
     }
 
+
+
     protected function seedB1Q2(Disclosure $b1): void
     {
-        $q2 = Question::updateOrCreate(
+        if (!$b1) return;
+
+        $q = \App\Models\Question::updateOrCreate(
             ['disclosure_id' => $b1->id, 'key' => 'b1.q2'],
             [
                 'number' => 2,
-                'type' => 'radio-cards',
-                'title' => [
-                    'en' => 'Will your company be reporting sustainability data?',
-                    'fi' => 'Raportoiko yrityksesi kestävyystietoja?'
+                'type'   => 'radio-cards',
+                'title'  => [
+                    'en' => 'Reporting scope',
+                    'fi' => 'Raportoinnin laajuus',
                 ],
-                'rules' => ['required' => true, 'in' => ['individual', 'consolidated']],
-                'order' => 2,
-                'is_active' => true,
                 'help_official' => [
-                    'en' => '2-A basic report provides an overview...',
-                    'fi' => '2-Perusraportti tarjoaa yleiskuvan...'
+                    'en' => 'Choose individual (parent only) or consolidated (parent + subsidiaries).',
+                    'fi' => 'Valitse yksittäinen (emoyhtiö) tai konserni (emo + tytäryhtiöt).',
                 ],
-                'help_friendly' => [
-                    'en' => 'Think of the basic report as a snapshot…',
-                    'fi' => 'Ajattele perusraporttia pikakuvana…'
+                'rules'     => ['choice' => ['required','in:individual,consolidated']],
+                'order'     => 2,
+                'is_active' => true,
+                'meta'      => [
+                    'ui'   => ['compact' => true],
+                    'gate' => [
+                        'if'          => ['choice' => 'consolidated'],
+                        'reveal_keys' => ['b1.q3'], // نشان‌دادن لیست تابعه‌ها فقط در حالت consolidated
+                    ],
                 ],
             ]
         );
 
-        QuestionOption::updateOrCreate(
-            ['question_id' => $q2->id, 'kind' => 'option', 'key' => 'report_individual'],
-            ['value' => 'individual', 'label' => ['en' => 'Individually'], 'sort' => 1, 'is_active' => true]
+        \App\Models\QuestionOption::updateOrCreate(
+            ['question_id' => $q->id, 'kind' => 'option', 'key' => 'individual'],
+            ['value' => 'individual', 'label' => ['en' => 'Individual (parent only)', 'fi' => 'Yksittäinen (emoyhtiö)'], 'sort' => 1, 'is_active' => true]
         );
-
-        QuestionOption::updateOrCreate(
-            ['question_id' => $q2->id, 'kind' => 'option', 'key' => 'report_consolidated'],
-            ['value' => 'consolidated', 'label' => ['en' => 'In a consolidated fashion'], 'sort' => 2, 'is_active' => true]
+        \App\Models\QuestionOption::updateOrCreate(
+            ['question_id' => $q->id, 'kind' => 'option', 'key' => 'consolidated'],
+            ['value' => 'consolidated', 'label' => ['en' => 'Consolidated (parent + subsidiaries)', 'fi' => 'Konserni (emo + tytäryhtiöt)'], 'sort' => 2, 'is_active' => true]
         );
-    }
+    } // This is a gate for subsiders
 
     protected function seedB1Q3(Disclosure $b1): void
     {
-        $q3 = Question::updateOrCreate(
+        if (!$b1) return;
+
+        $q3 = \App\Models\Question::updateOrCreate(
             ['disclosure_id' => $b1->id, 'key' => 'b1.q3'],
             [
                 'number' => 3,
-                'type' => 'repeatable-group',
-                'title' => [
-                    'en' => 'Reporting company/companies',
-                    'fi' => 'Raportoiva yritys/yritykset'
+                'type'   => 'repeatable-group',
+                'title'  => [
+                    'en' => 'Subsidiaries list',
+                    'fi' => 'Tytäryhtiöiden luettelo',
                 ],
                 'help_official' => [
-                    'en' => '3-Our ESG framework ensures...',
-                    'fi' => '3-ESG-kehyksemme varmistaa...'
+                    'en' => 'List each subsidiary: company name and registered address (street, city, country).',
+                    'fi' => 'Luettele jokainen tytäryhtiö: nimi ja rekisteröity osoite (katu, kaupunki, maa).',
                 ],
                 'help_friendly' => [
-                    'en' => '3-We take ESG seriously!...',
-                    'fi' => '3-Suhtaudumme ESG:hen tosissamme!...'
+                    'en' => 'Add one row per subsidiary. Use official registered address.',
+                    'fi' => 'Lisää yksi rivi per tytäryhtiö. Käytä virallista rekisteröityä osoitetta.',
                 ],
                 'rules' => [
                     'required' => true,
-                    'array' => true,
-                    'min' => 1,
+                    'array'    => true,
+                    'min'      => 1,
                     'item_rules' => [
-                        'name' => ['required', 'string', 'max:200'],
-                        'street_address' => ['required', 'string', 'max:300'],
-                        'city' => ['required', 'string', 'max:120'],
-                        'country' => ['required'],
-                        'geolocation' => ['required', 'string', 'max:120'],
-                        'nace' => ['required'],
+                        'name'   => ['required', 'string', 'max:200'],
+                        'street' => ['required', 'string', 'max:300'],
+                        'city'   => ['required', 'string', 'max:120'],
+                        'country'=> ['required'], // ISO2 recommended in UI
                     ],
                 ],
-                'order' => 3,
+                'order'     => 3,
                 'is_active' => true,
-                'meta' => [
-                    'max_rows_if' => [
-                        ['when' => ['key' => 'b1.q2', 'eq' => 'individual'], 'max' => 1],
+                'meta'      => [
+                    'role' => 'subsidiaries',
+                    // Visible only when reporting scope is consolidated
+                    'visible_if' => [
+                        ['when' => ['key' => 'b1.q2', 'eq' => 'consolidated']],
                     ],
+                    'ui' => ['compact' => true],
                 ],
             ]
         );
 
-        QuestionOption::updateOrCreate(
+        // Fields: Company name
+        \App\Models\QuestionOption::updateOrCreate(
             ['question_id' => $q3->id, 'kind' => 'field', 'key' => 'name'],
-            ['label' => ['en' => 'Company name'], 'extra' => ['type' => 'text', 'placeholder' => 'ProVision'], 'sort' => 1, 'is_active' => true]
-        );
-        QuestionOption::updateOrCreate(
-            ['question_id' => $q3->id, 'kind' => 'field', 'key' => 'street_address'],
-            ['label' => ['en' => 'Street Address'], 'extra' => ['type' => 'text', 'placeholder' => 'Mäkelänkatu 25 B 13'], 'sort' => 2, 'is_active' => true]
-        );
-        QuestionOption::updateOrCreate(
-            ['question_id' => $q3->id, 'kind' => 'field', 'key' => 'city'],
-            ['label' => ['en' => 'City / Town'], 'extra' => ['type' => 'text', 'placeholder' => 'Helsinki'], 'sort' => 3, 'is_active' => true]
-        );
-        QuestionOption::updateOrCreate(
-            ['question_id' => $q3->id, 'kind' => 'field', 'key' => 'country'],
             [
-                'label' => ['en' => 'Country'],
-                'extra' => ['type' => 'select', 'choices' => [
-                    ['value' => 'FI', 'label' => 'Finland'],
-                    ['value' => 'SE', 'label' => 'Sweden'],
-                    ['value' => 'DE', 'label' => 'Germany'],
-                    ['value' => 'FR', 'label' => 'France'],
-                    ['value' => 'IR', 'label' => 'Iran'],
-                ]],
-                'sort' => 4, 'is_active' => true
+                'label' => ['en' => 'Company name', 'fi' => 'Yrityksen nimi'],
+                'extra' => ['type' => 'text', 'placeholder' => 'Acme Subsidiary Ltd'],
+                'sort'  => 1,
+                'is_active' => true,
             ]
         );
-        QuestionOption::updateOrCreate(
-            ['question_id' => $q3->id, 'kind' => 'field', 'key' => 'geolocation'],
-            ['label' => ['en' => 'Geolocation'], 'extra' => ['type' => 'text', 'placeholder' => 'lat 60.17 | lon 24.94'], 'sort' => 5, 'is_active' => true]
-        );
-        QuestionOption::updateOrCreate(
-            ['question_id' => $q3->id, 'kind' => 'field', 'key' => 'nace'],
+
+        // Registered address — Street
+        \App\Models\QuestionOption::updateOrCreate(
+            ['question_id' => $q3->id, 'kind' => 'field', 'key' => 'street'],
             [
-                'label' => ['en' => 'NACE code'],
+                'label' => ['en' => 'Street address', 'fi' => 'Katuosoite'],
+                'extra' => ['type' => 'text', 'placeholder' => 'Mäkelänkatu 25 B 13'],
+                'sort'  => 2,
+                'is_active' => true,
+            ]
+        );
+
+        // Registered address — City
+        \App\Models\QuestionOption::updateOrCreate(
+            ['question_id' => $q3->id, 'kind' => 'field', 'key' => 'city'],
+            [
+                'label' => ['en' => 'City / Town', 'fi' => 'Kaupunki / Paikkakunta'],
+                'extra' => ['type' => 'text', 'placeholder' => 'Helsinki'],
+                'sort'  => 3,
+                'is_active' => true,
+            ]
+        );
+
+        // Registered address — Country (example list, keep consistent with B1)
+        \App\Models\QuestionOption::updateOrCreate(
+            ['question_id' => $q3->id, 'kind' => 'field', 'key' => 'country'],
+            [
+                'label' => ['en' => 'Country', 'fi' => 'Maa'],
                 'extra' => [
-                    'type' => 'select', 'searchable' => true,
+                    'type' => 'select',
                     'choices' => [
-                        ['value' => 'A.1.1.4', 'label' => 'A.1.1.4 - Growing of sugar cane'],
-                        ['value' => 'C.10.1.1', 'label' => 'C.10.1.1 - Processing and preserving of meat'],
-                        ['value' => 'G.47.1.1', 'label' => 'G.47.1.1 - Retail sale in non-specialised stores'],
+                        ['value' => 'FI', 'label' => 'Finland'],
+                        ['value' => 'SE', 'label' => 'Sweden'],
+                        ['value' => 'DE', 'label' => 'Germany'],
+                        ['value' => 'FR', 'label' => 'France'],
+                        ['value' => 'IR', 'label' => 'Iran'],
                     ],
                 ],
-                'sort' => 6, 'is_active' => true
+                'sort'  => 4,
+                'is_active' => true,
             ]
         );
     }
+
+
 
     protected function seedB1Q4(Disclosure $b1): void
     {
@@ -526,7 +546,7 @@ class VsmeSeeder extends Seeder
                     'type' => 'number',
                     'step' => '0.01',
                     'min' => 0,
-                    'suffix' => '€',           // یا اگر ترجیح می‌دهی: 'EUR'
+                    'suffix' => '€',
                     'placeholder' => '1000000',
                 ],
                 'sort' => 1,
@@ -630,6 +650,129 @@ class VsmeSeeder extends Seeder
             ]
         );
     }
+
+
+    protected function seedB1Q9(Disclosure $b1): void
+    {
+        if (!$b1) return;
+
+        $q = \App\Models\Question::updateOrCreate(
+            ['disclosure_id' => $b1->id, 'key' => 'b1.q9'],
+            [
+                'number' => 9,
+                'type'   => 'repeatable-group',
+                'title'  => [
+                    'en' => 'Significant sites list',
+                    'fi' => 'Merkittävien toimipaikkojen luettelo',
+                ],
+                'help_official' => [
+                    'en' => 'Provide each significant site: name/label, registered address (street, postcode, city, country) and geolocation.',
+                    'fi' => 'Anna jokaisesta merkittävästä toimipaikasta: nimi, rekisteröity osoite (katu, postinumero, kaupunki, maa) ja geolocation.',
+                ],
+                'help_friendly' => [
+                    'en' => 'Add one row per site. Use this format for geolocation: "lat 60.17 | lon 24.94".',
+                    'fi' => 'Lisää yksi rivi per toimipaikka. Käytä geolocation-muotoa: "lat 60.17 | lon 24.94".',
+                ],
+                // ✅ Rules به‌روزشده (بدون site_type)
+                'rules' => [
+                    'required' => true,
+                    'array'    => true,
+                    'min'      => 1,
+                    'item_rules' => [
+                        'site_name'  => ['required','string','max:200'],
+                        'street'     => ['required','string','max:300'],
+                        'postcode'   => ['required','string','max:20'],
+                        'city'       => ['required','string','max:120'],
+                        'country'    => ['required'], // مطابق choices
+                        // الگوی "lat 60.17 | lon 24.94"
+                        'geolocation'=> ['required','string'],
+                    ],
+                ],
+                'order'     => 9,
+                'is_active' => true,
+                'meta'      => [
+                    'role' => 'significant_sites',
+                    'ui'   => ['compact' => true],
+                ],
+            ]
+        );
+
+        // Site name / label
+        \App\Models\QuestionOption::updateOrCreate(
+            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'site_name'],
+            [
+                'label' => ['en' => 'Site name / label', 'fi' => 'Toimipaikan nimi'],
+                'extra' => ['type' => 'text', 'placeholder' => 'Headquarters / Plant A'],
+                'sort'  => 1,
+                'is_active' => true,
+            ]
+        );
+
+        // Street address
+        \App\Models\QuestionOption::updateOrCreate(
+            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'street'],
+            [
+                'label' => ['en' => 'Street address', 'fi' => 'Katuosoite'],
+                'extra' => ['type' => 'text', 'placeholder' => 'Mannerheimintie 10'],
+                'sort'  => 2,
+                'is_active' => true,
+            ]
+        );
+
+        // Postcode
+        \App\Models\QuestionOption::updateOrCreate(
+            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'postcode'],
+            [
+                'label' => ['en' => 'Postcode', 'fi' => 'Postinumero'],
+                'extra' => ['type' => 'text', 'placeholder' => '00100'],
+                'sort'  => 3,
+                'is_active' => true,
+            ]
+        );
+
+        // City
+        \App\Models\QuestionOption::updateOrCreate(
+            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'city'],
+            [
+                'label' => ['en' => 'City / Town', 'fi' => 'Kaupunki / Paikkakunta'],
+                'extra' => ['type' => 'text', 'placeholder' => 'Helsinki'],
+                'sort'  => 4,
+                'is_active' => true,
+            ]
+        );
+
+        // Country (select with fixed choices)
+        \App\Models\QuestionOption::updateOrCreate(
+            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'country'],
+            [
+                'label' => ['en' => 'Country', 'fi' => 'Maa'],
+                'extra' => [
+                    'type' => 'select',
+                    'choices' => [
+                        ['value' => 'FI', 'label' => 'Finland'],
+                        ['value' => 'SE', 'label' => 'Sweden'],
+                        ['value' => 'DE', 'label' => 'Germany'],
+                        ['value' => 'FR', 'label' => 'France'],
+                        ['value' => 'IR', 'label' => 'Iran'],
+                    ],
+                ],
+                'sort'  => 5,
+                'is_active' => true,
+            ]
+        );
+
+        // Geolocation (single text field)
+        \App\Models\QuestionOption::updateOrCreate(
+            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'geolocation'],
+            [
+                'label' => ['en' => 'Geolocation', 'fi' => 'Sijainti (koordinaatit)'],
+                'extra' => ['type' => 'text', 'placeholder' => 'lat 60.17 | lon 24.94'],
+                'sort'  => 6,
+                'is_active' => true,
+            ]
+        );
+    }
+
 
 
 
@@ -887,23 +1030,25 @@ class VsmeSeeder extends Seeder
                 'number' => 1,
                 'type' => 'multi-input',
                 'title' => [
-                    'en' => 'Annual energy consumption (electricity & fuels, MWh)',
-                    'fi' => 'Vuosittainen energiankulutus (sähkö & polttoaineet, MWh)',
+                    'en' => 'Annual energy consumption by source and renewability (MWh)',
+                    'fi' => 'Vuosittainen energiankulutus lähteittäin ja uusiutuvuuden mukaan (MWh)',
                 ],
                 'help_official' => [
-                    'en' => 'Provide annual consumption values. Use MWh for both electricity and fuels.',
-                    'fi' => 'Anna vuosittaiset kulutusarvot. Käytä yksikkönä MWh.',
+                    'en' => 'Enter annual consumption split into renewable and non-renewable for both electricity and fuels. Use MWh.',
+                    'fi' => 'Anna vuosikulutus jaaettuna uusiutuvaan ja ei-uusiutuvaan sekä sähköön ja polttoaineisiin. Yksikkö: MWh.',
                 ],
                 'help_friendly' => [
-                    'en' => 'Estimates are okay for now. You can refine later.',
-                    'fi' => 'Arviot kelpaavat tässä vaiheessa. Voit tarkentaa myöhemmin.',
+                    'en' => 'If your data is in kWh, liters or m³, convert to MWh before entering. Estimates are fine.',
+                    'fi' => 'Jos data on kWh, litroina tai m³, muunna MWh:ksi ennen syöttöä. Arviot käyvät.',
                 ],
                 'rules' => [
                     'array' => true,
                     'required' => true,
                     'item_rules' => [
-                        'electricity_mwh' => ['required', 'numeric', 'min:0'],
-                        'fuel_mwh' => ['required', 'numeric', 'min:0'],
+                        'electricity_renewable_mwh'     => ['nullable', 'numeric', 'min:0'],
+                        'electricity_nonrenewable_mwh'  => ['nullable', 'numeric', 'min:0'],
+                        'fuel_renewable_mwh'            => ['nullable', 'numeric', 'min:0'],
+                        'fuel_nonrenewable_mwh'         => ['nullable', 'numeric', 'min:0'],
                     ],
                 ],
                 'order' => 1,
@@ -911,26 +1056,71 @@ class VsmeSeeder extends Seeder
             ]
         );
 
+        // Electricity — Renewable
         QuestionOption::updateOrCreate(
-            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'electricity_mwh'],
+            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'electricity_renewable_mwh'],
             [
-                'label' => ['en' => 'Electricity (MWh)', 'fi' => 'Sähkö (MWh)'],
-                'extra' => ['type' => 'number', 'placeholder' => '100', 'step' => 'any', 'min' => 0, 'suffix' => 'MWh'],
+                'label' => [
+                    'en' => 'Electricity from renewable sources (MWh)',
+                    'fi' => 'Sähkö uusiutuvista lähteistä (MWh)',
+                ],
+                'extra' => [
+                    'type' => 'number', 'placeholder' => '100', 'step' => 'any', 'min' => 0, 'suffix' => 'MWh'
+                ],
                 'sort' => 1,
                 'is_active' => true,
             ]
         );
 
+        // Electricity — Non-renewable
         QuestionOption::updateOrCreate(
-            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'fuel_mwh'],
+            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'electricity_nonrenewable_mwh'],
             [
-                'label' => ['en' => 'Fuels (MWh)', 'fi' => 'Polttoaineet (MWh)'],
-                'extra' => ['type' => 'number', 'placeholder' => '100', 'step' => 'any', 'min' => 0, 'suffix' => 'MWh'],
+                'label' => [
+                    'en' => 'Electricity from non-renewable sources (MWh)',
+                    'fi' => 'Sähkö ei-uusiutuvista lähteistä (MWh)',
+                ],
+                'extra' => [
+                    'type' => 'number', 'placeholder' => '100', 'step' => 'any', 'min' => 0, 'suffix' => 'MWh'
+                ],
                 'sort' => 2,
                 'is_active' => true,
             ]
         );
+
+        // Fuels — Renewable
+        QuestionOption::updateOrCreate(
+            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'fuel_renewable_mwh'],
+            [
+                'label' => [
+                    'en' => 'Renewable fuels (MWh)',
+                    'fi' => 'Uusiutuvat polttoaineet (MWh)',
+                ],
+                'extra' => [
+                    'type' => 'number', 'placeholder' => '50', 'step' => 'any', 'min' => 0, 'suffix' => 'MWh'
+                ],
+                'sort' => 3,
+                'is_active' => true,
+            ]
+        );
+
+        // Fuels — Non-renewable
+        QuestionOption::updateOrCreate(
+            ['question_id' => $q->id, 'kind' => 'field', 'key' => 'fuel_nonrenewable_mwh'],
+            [
+                'label' => [
+                    'en' => 'Non-renewable fuels (MWh)',
+                    'fi' => 'Ei-uusiutuvat polttoaineet (MWh)',
+                ],
+                'extra' => [
+                    'type' => 'number', 'placeholder' => '50', 'step' => 'any', 'min' => 0, 'suffix' => 'MWh'
+                ],
+                'sort' => 4,
+                'is_active' => true,
+            ]
+        );
     }
+
 
 
     // B3.Q2 — Boundary approach (radio-cards)
@@ -1209,7 +1399,7 @@ class VsmeSeeder extends Seeder
                     'fi' => 'Vinkki: pinta-ala hehtaareina (ha). Jos ei alueen sisällä, valitse Ei (eli lähellä).',
                 ],
                 'rules' => [
-                    // فقط وقتی B5.Q1 = yes نمایش داده می‌شود (با visible_if). در غیراینصورت در UI اسکپ می‌شود.
+
                     'required' => true,
                     'array' => true,
                     'min' => 1,
@@ -1226,15 +1416,15 @@ class VsmeSeeder extends Seeder
                     // برای گزارش: گزارش بتواند این ردیف‌ها را با role پیدا کند
                     'role' => 'biodiversity_sites',
 
-                    // این پرسش فقط وقتی B5.Q1 = yes باشد نمایش داده شود
+
                     'visible_if' => [
                         ['when' => ['key' => 'b5.q1', 'eq' => 'yes']],
                     ],
 
-                    // منبع انتخاب سایت‌ها از پاسخ B1.Q3 (لیست سایت‌ها)
+
                     'sources' => [
                         'site_list' => [
-                            'from_question' => 'b1.q3',
+                            'from_question' => 'b1.q9',
                             'value_key' => '_uid',
                             'label_tpl' => '{{name}} — {{city}}, {{country}}',
                         ],
@@ -1257,7 +1447,7 @@ class VsmeSeeder extends Seeder
                     'type' => 'select',
                     'choices' => [], // در Front از sources.site_list پر می‌شود
                     'placeholder' => 'Select a site…',
-                    'hint' => 'Pick from your sites defined in B1.Q3.',
+                    'hint' => 'Pick from your sites defined',
                 ],
                 'sort' => 1,
                 'is_active' => true,
@@ -1429,7 +1619,7 @@ class VsmeSeeder extends Seeder
                     'step' => 'any',
                     'min' => 0,
                     'suffix' => 'L',
-                    'placeholder' => 'esim. 150000',
+                    'placeholder' => '150000',
                 ],
                 'sort' => 1,
                 'is_active' => true,
@@ -1471,7 +1661,7 @@ class VsmeSeeder extends Seeder
                     'step' => 'any',
                     'min' => 0,
                     'suffix' => 'L',
-                    'placeholder' => 'esim. 25000',
+                    'placeholder' => '25000',
                     'visible_if' => ['key' => 'has_high_stress', 'eq' => 'yes'],
                 ],
                 'sort' => 3,
@@ -1527,7 +1717,7 @@ class VsmeSeeder extends Seeder
                         'key' => 'discharge_liters',
                         'type' => 'number',
                         'label' => ['en' => 'Water discharged (liters)', 'fi' => 'Poistettu vesi (litraa)'],
-                        'placeholder' => ['en' => '150000', 'fi' => 'esim. 150000'],
+                        'placeholder' => ['en' => '150000', 'fi' => '150000'],
                         'min' => 0,
                         'step' => 'any',
                         'suffix' => 'L',
@@ -2591,8 +2781,8 @@ class VsmeSeeder extends Seeder
                     'array'      => true,
                     'required'   => false,
                     'item_rules' => [
-                        'training_hours_male'   => ['nullable','numeric','min:0'],
-                        'training_hours_female' => ['nullable','numeric','min:0'],
+                        'training_hours_male'   => ['required','numeric','min:0'],
+                        'training_hours_female' => ['required','numeric','min:0'],
                     ],
                 ],
                 'order'     => 4,
@@ -2616,7 +2806,7 @@ class VsmeSeeder extends Seeder
                     'step'        => 'any',
                     'min'         => 0,
                     'suffix'      => 'h',
-                    'placeholder' => 'e.g., 12.5',
+                    'placeholder' => '12.5',
                 ],
                 'sort'      => 1,
                 'is_active' => true,
@@ -2636,14 +2826,13 @@ class VsmeSeeder extends Seeder
                     'step'        => 'any',
                     'min'         => 0,
                     'suffix'      => 'h',
-                    'placeholder' => 'e.g., 11',
+                    'placeholder' => '11',
                 ],
                 'sort'      => 2,
                 'is_active' => true,
             ]
         );
     }
-
 
     protected function seedB11Q1(Disclosure $b11): void
     {

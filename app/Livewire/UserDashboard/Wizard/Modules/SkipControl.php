@@ -21,6 +21,7 @@ class SkipControl extends Component
 
 
     public ?string $note = null;
+    public $isFirstIsTwo;
 
     public function mount(string $currentKey, string $questionTitle = ''): void
     {

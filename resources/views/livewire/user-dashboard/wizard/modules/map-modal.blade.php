@@ -14,7 +14,7 @@
             $watch('domId', id => { if (open && id) queueMicrotask(() => requestAnimationFrame(fire)); });
         "
     >
-        <div id="{{ $mapDomId }}" wire:ignore.self class="w-full h-80 rounded-xl border border-base-300"></div>
+        <div id="{{ $mapDomId }}" wire:ignore class="w-full h-80 rounded-xl border border-base-300"></div>
 
         <div class="mt-3 flex justify-end gap-2">
             <x-button class="btn-ghost" label="{{ __('Cancel') }}" wire:click="$set('showMap', false)" />
@@ -34,7 +34,7 @@
     (() => {
         if (window.__MAP1__) return; window.__MAP1__ = true;
 
-        // R[id] = { map, marker, el, compId, pending }
+
         const R = {};
         const log = (...a) => console.log('[MAP1]', ...a);
 
@@ -51,11 +51,11 @@
             const { id, coords, componentId } = e.detail || {};
             log('init', id, 'coords=', coords);
 
-            if (!window.L) { log('L not ready → retry'); return setTimeout(() => init(e), 60); }
+            if (!window.L) { log('L not ready → retry'); return setTimeout(() => init(e), 2); }
             const el = document.getElementById(id);
-            if (!el)      { log('container missing → retry'); return setTimeout(() => init(e), 60); }
+            if (!el)      { log('container missing → retry'); return setTimeout(() => init(e), 2); }
 
-            // container جدید؟
+
             if (R[id]?.map && R[id].map._container !== el) {
                 try { R[id].map.remove(); } catch {}
                 delete R[id];
@@ -92,7 +92,7 @@
             log('reused + invalidate', id);
         }
 
-        // فقط روی دکمه "Use this" ست می‌کنیم → بدون رفرش وسط درگ/کلیک
+
         function commit(e){
             const { id, componentId } = e.detail || {};
             const rec = R[id];
@@ -106,7 +106,7 @@
         window.addEventListener('leaflet:init', init);
         window.addEventListener('leaflet:commit', commit);
 
-        // پاکسازی ایمن اگر container حذف شد
+
         const hook = () => {
             window.Livewire.hook('element.removed', el => {
                 const id = el?.id; if (!id || !R[id]?.map) return;
@@ -115,7 +115,7 @@
                 log('cleanup removed', id);
             });
         };
-        if (window.Livewire) hook(); else document.addEventListener('livewire:initialized', hook, { once:false });
+        if (window.Livewire) hook(); else document.addEventListener('livewire:initialized', hook, { once:true });
     })();
 </script>
 @endscript

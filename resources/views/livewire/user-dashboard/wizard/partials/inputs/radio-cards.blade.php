@@ -96,9 +96,9 @@
 
                         <div class="flex items-center gap-1.5 shrink-0">
                             @if($showBadge && $needsEvidence)
-                                <span class="badge badge-soft badge-sm peer-checked:badge-primary">
-                                    {{ __('Evidence') }}
-                                </span>
+{{--                                <span class="badge badge-soft badge-sm peer-checked:badge-primary">--}}
+{{--                                    {{ __('Evidence') }}--}}
+{{--                                </span>--}}
                             @endif
 
                             @foreach($metaChips as $chip)

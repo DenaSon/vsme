@@ -17,13 +17,12 @@
             'progress' => $this->progress,
         ])
 
-        @include('livewire.user-dashboard.wizard.partials.levels', ['active' => $this->index])
+        {{--        @include('livewire.user-dashboard.wizard.partials.levels', ['active' => $this->index])--}}
 
         <!-- Questionnaire -->
         <livewire:user-dashboard.wizard.question-block
             :moduleChoice="$this->moduleChoice"
             :companyType="$this->companyType"
-
             :index="$this->index"
             :q="$questions[$this->currentKey] ?? []"
             :total="$this->total"
@@ -37,15 +36,16 @@
 
         @include('livewire.user-dashboard.wizard.partials.actions')
 
-        <x-badge class="badge badge-error mt-4 mb-4"
-                 :value="'Index is: '.$this->index.' and CurrentKey is: '.$currentKey"/>
+        <div class="border border-gray-300 rounded-xl p-4 bg-gray-50 shadow-sm mt-4 mb-4">
+            <x-badge class="badge"
+                     :value="'Index is: '.$this->index.' and CurrentKey is: '.$currentKey"/>
 
-        @if(isset($questions[$this->currentKey]))
-            <x-badge
-                class="badge badge-outline badge-soft mt-4 mb-4"
-                :value="'Disclosure Code: ' . (\App\Models\Question::where('key', $currentKey)->first()?->disclosure?->code ?? 'N/A')"
-            />
-        @endif
+            <a href="{{ route('panel.questionnaire.reports.show',['report' => $reportId]) }}"
+               class="text-blue-600 hover:underline">
+                Report
+            </a>
+        </div>
+
 
         @include('livewire.user-dashboard.wizard.partials.footnote', [
             'q' => $questions[$this->currentKey] ?? [],
@@ -59,10 +59,27 @@
 @push('styles')
     <style>
 
-        .wizard :where(.card){ max-width:none !important; width:100% !important; }
-        .wizard :where(.card > .card-body){ max-width:none !important; width:100% !important; }
-        .wizard :where(label.block){ display:block !important; width:100% !important; }
-        .wizard :where(.alert){ width:100% !important; }
-        .wizard :where(.prose){ max-width:none !important; }
+        .wizard :where(.card) {
+            max-width: none !important;
+            width: 100% !important;
+        }
+
+        .wizard :where(.card > .card-body) {
+            max-width: none !important;
+            width: 100% !important;
+        }
+
+        .wizard :where(label.block) {
+            display: block !important;
+            width: 100% !important;
+        }
+
+        .wizard :where(.alert) {
+            width: 100% !important;
+        }
+
+        .wizard :where(.prose) {
+            max-width: none !important;
+        }
     </style>
 @endpush

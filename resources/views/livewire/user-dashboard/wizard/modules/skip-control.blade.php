@@ -1,6 +1,7 @@
 <div class="flex items-center gap-2">
     <details class="dropdown dropdown-end">
-        <summary class="btn btn-outline min-w-[7rem]">
+
+        <summary class="btn btn-outline min-w-[7rem]" @disabled($isFirstIsTwo)>
             {{__('ui.skip')}}
             <x-heroicon-o-chevron-down class="w-4 h-4 ms-1"/>
         </summary>
@@ -9,6 +10,7 @@
             <li><button type="button" wire:click="openClassified">{{__('ui.classified_information')}}</button></li>
         </ul>
     </details>
+
 
 
     <x-modal wire:model="showModal" title="{{__('ui.classified_information')}}" separator subtitle="{{ $questionTitle ?? '' }}">

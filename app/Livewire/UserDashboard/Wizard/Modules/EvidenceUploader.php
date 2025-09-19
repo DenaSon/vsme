@@ -2,6 +2,7 @@
 
 namespace App\Livewire\UserDashboard\Wizard\Modules;
 
+use App\Models\ReportEvidence;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Rule;
@@ -23,18 +24,16 @@ class EvidenceUploader extends Component
     public array $uploads = [];
 
     public string $accept = '.pdf,.jpg,.jpeg,.png';
-    public int $maxFiles = 5;
+    public int $maxFiles = 10;
     public int $maxSizeMb = 10;
     public string $label;
 
 
     public function mount(): void
     {
-        // استفاده از کلید ترجمه برای برچسب
+
         $this->label = __('ui.attach_files');
     }
-
-
 
 
     protected function rules(): array
@@ -101,8 +100,35 @@ class EvidenceUploader extends Component
         $this->success(__('ui.files_uploaded'));
     }
 
+    public function deleteEvidence($id): void
+    {
+
+        $evidence = \App\Models\ReportEvidence::find($id);
+
+        if (! $evidence) {
+
+            session()->flash('error', __('Evidence not found.'));
+            return;
+        }
+
+
+        if ($evidence->path && \Illuminate\Support\Facades\Storage::exists($evidence->path)) {
+            \Illuminate\Support\Facades\Storage::delete($evidence->path);
+        }
+
+        $evidence->delete();
+
+
+        $this->info('Delete file', __('Evidence deleted successfully.'));
+    }
+
+
     public function render()
     {
-        return view('livewire.user-dashboard.wizard.modules.evidence-uploader');
+        $evidences = ReportEvidence::where('question_key', $this->questionKey)
+            ->where('report_id',$this->reportId)
+            ->get();
+
+        return view('livewire.user-dashboard.wizard.modules.evidence-uploader')->with('evidences', $evidences);
     }
 }

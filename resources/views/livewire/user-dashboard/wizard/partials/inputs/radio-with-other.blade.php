@@ -20,7 +20,7 @@
         @endphp
 
         {{-- برای هر گزینه یک باکس --}}
-        <label wire:key="{{$id}}" class="block" for="{{ $id }}"
+        <label wire:key="{{$id}}" class="block  cursor-pointer" for="{{ $id }}"
                {{-- فقط برای گزینه "other" یک state سبک ایجاد می‌کنیم --}}
                @if($isOther)
                    x-data="{ otherSelected: @js($choice === 'other') }"
@@ -37,6 +37,7 @@
                    @if($isOther)
                        @change="otherSelected = ($event.target.checked && $event.target.value === 'other')"
                 @endif
+
             />
 
             <div class="card bg-base-100 border border-base-300 rounded-2xl transition

@@ -6,6 +6,7 @@ use App\Livewire\Actions\Logout;
 use App\Livewire\AdminDashboard\Crawler\NewsletterIndex;
 use App\Livewire\AdminDashboard\Documents\DocIndex;
 use App\Livewire\Home\Index;
+use App\Livewire\UserDashboard\Report\ShowReport;
 use App\Livewire\UserDashboard\Setting\DeliverySetting;
 use Illuminate\Support\Facades\Route;
 use Laravel\Cashier\Http\Controllers\WebhookController;
@@ -71,6 +72,13 @@ Route::prefix('panel')
             ->group(function () {
 
                 Route::get('/wizard', \App\Livewire\UserDashboard\Wizard\Wizard::class)->name('index');
+
+
+
+                Route::get('/reports/{report}', ShowReport::class)
+                    ->name('reports.show');
+
+
 
             });
 

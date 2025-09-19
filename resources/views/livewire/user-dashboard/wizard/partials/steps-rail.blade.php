@@ -1,40 +1,34 @@
 @php
-    // مقدارهای پایه
-    $current = $current ?? 1;
+    $current = max(1, (int) ($current ?? 1));
+    $total   = max(1, (int) ($this->total ?? 0));
 
-    // چندتا آیتم در ریل نمایش داده شود (بین 8 تا 20 یا 15% کل)
-    $visible = $visible
-        ?? min( max( (int) round(($this->total ?? 0) * 0.15), 8 ), 20 );
+    // اندازهٔ تکه
+    $chunk   = (int) ($chunk ?? 10);     // هر 10 تا یک تکه
+    $chunk   = max(3, min($chunk, 30)); // محدودیت منطقی
 
-    // اگر total تعریف نشده یا صفر بود، از خطا جلوگیری کن
-    $total = (int) ($this->total ?? 0);
-    if ($total < 1) { $total = 1; }
+    $chunkIndex = intdiv($current - 1, $chunk); // 0-based
+    $start      = $chunkIndex * $chunk + 1;
+    $end        = min($total, $start + $chunk - 1);
 
-    // محاسبه محدوده‌ی پنجره
-    $half = intdiv($visible, 2);
-    $start = max(1, min($current - $half, $total - $visible + 1));
-    $end   = min($total, $start + $visible - 1);
+    $hasPrevChunk = $start > 1;
+    $hasNextChunk = $end < $total;
 @endphp
 
-<aside class="hidden md:flex relative w-14 shrink-0 justify-start bg-base-100 sticky top-24 h-[calc(100dvh-6rem)]">
+<aside  class="hidden md:flex relative w-14 shrink-0 justify-start bg-base-100 sticky top-24 h-[calc(100dvh-6rem)] mt-10">
     <div class="absolute left-1/2 -translate-x-1/2 top-3 bottom-3 w-px bg-base-300"></div>
 
-    <ol class="mt-1 flex flex-col items-center gap-6 w-full overflow-hidden">
+    <ol class="mt-1 flex flex-col items-center gap-6 w-full">
 
-        {{-- اگر ابتدای لیست بریده شد، 1 و … را نشان بده --}}
-        @if ($start > 1)
-            <li class="relative z-10">
-                <div class="grid place-items-center w-8 h-8 rounded-full border border-base-300 bg-base-100">
-                    <span class="text-[11px] text-base-content/60">1</span>
-                </div>
-            </li>
-            <li class="text-xs opacity-50 select-none">…</li>
+        {{-- اگر تکهٔ قبلی وجود دارد --}}
+        @if ($hasPrevChunk)
+            <li class="text-xs opacity-60 select-none">1…{{ $start - 1 }}</li>
         @endif
 
-        {{-- پنجره‌ی قابل‌مشاهده --}}
+        {{-- حلقه اصلی --}}
         @for ($i = $start; $i <= $end; $i++)
             @if ($i === $current)
-                <li class="relative z-10" aria-current="step" wire:key="rail-active-{{ $i }}">
+                {{-- وضعیت جاری --}}
+                <li  class="relative z-10" aria-current="step" wire:key="rail-active-{{ $i }}">
                     <div class="grid place-items-center w-12 h-12 rounded-full border-2 border-primary bg-base-100">
                         <div wire:loading wire:target="next,back">
                             <x-icon name="o-arrow-path" class="w-5 h-5 text-primary animate-spin"/>
@@ -46,7 +40,15 @@
                     </div>
                     <div class="w-px h-4 bg-primary mx-auto"></div>
                 </li>
+            @elseif ($i < $current)
+                {{-- سوالات قبلی → border سبز نازک --}}
+                <li class="relative z-10" wire:key="rail-done-{{ $i }}">
+                    <div class="grid place-items-center w-8 h-8 rounded-full border border-success/70 bg-base-100">
+                        <span class="text-[11px] text-success/80">{{ $i }}</span>
+                    </div>
+                </li>
             @else
+                {{-- سوالات آینده → حالت عادی --}}
                 <li class="relative z-10" wire:key="rail-{{ $i }}">
                     <div class="grid place-items-center w-8 h-8 rounded-full border border-base-300 bg-base-100">
                         <span class="text-[11px] text-base-content/60">{{ $i }}</span>
@@ -55,14 +57,9 @@
             @endif
         @endfor
 
-        {{-- اگر انتهای لیست بریده شد، … و N را نشان بده --}}
-        @if ($end < $total)
-            <li class="text-xs opacity-50 select-none">…</li>
-            <li class="relative z-10">
-                <div class="grid place-items-center w-8 h-8 rounded-full border border-base-300 bg-base-100">
-                    <span class="text-[11px] text-base-content/60">{{ $total }}</span>
-                </div>
-            </li>
+        {{-- اگر تکهٔ بعدی وجود دارد --}}
+        @if ($hasNextChunk)
+            <li class="text-xs opacity-60 select-none">{{ $end }}…{{ $total }}</li>
         @endif
 
     </ol>
